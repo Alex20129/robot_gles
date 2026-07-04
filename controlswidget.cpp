@@ -18,6 +18,54 @@ ControlsWidget::~ControlsWidget()
 	delete ui;
 }
 
+void ControlsWidget::attachRobot(QRobot *robot)
+{
+	if(nullptr==robot)
+	{
+		return;
+	}
+	if(nullptr!=this->robot)
+	{
+		QObject::disconnect(this->robot, nullptr, this, nullptr);
+		QObject::disconnect(this, nullptr, this->robot, nullptr);
+	}
+	this->robot=robot;
+
+	QObject::connect(this, &ControlsWidget::jointControlValueChanged, robot, &QRobot::setJointAngle);
+	QObject::connect(this, &ControlsWidget::needToSetTargetPosition, robot, &QRobot::setTargetPosition);
+	QObject::connect(this, &ControlsWidget::needToStartAnimation, robot, &QRobot::startAnimation);
+	QObject::connect(robot, &QRobot::configurationChanged, this, &ControlsWidget::onRobotConfigurationChanged);
+
+	ui->horizontalScrollBar_J0->setMinimum(this->robot->getJointLimits(0).first*4.0);
+	ui->horizontalScrollBar_J0->setMaximum(this->robot->getJointLimits(0).second*4.0);
+	ui->horizontalScrollBar_J1->setMinimum(this->robot->getJointLimits(1).first*4.0);
+	ui->horizontalScrollBar_J1->setMaximum(this->robot->getJointLimits(1).second*4.0);
+	ui->horizontalScrollBar_J2->setMinimum(this->robot->getJointLimits(2).first*4.0);
+	ui->horizontalScrollBar_J2->setMaximum(this->robot->getJointLimits(2).second*4.0);
+	ui->horizontalScrollBar_J3->setMinimum(this->robot->getJointLimits(3).first*4.0);
+	ui->horizontalScrollBar_J3->setMaximum(this->robot->getJointLimits(3).second*4.0);
+	ui->horizontalScrollBar_J4->setMinimum(this->robot->getJointLimits(4).first*4.0);
+	ui->horizontalScrollBar_J4->setMaximum(this->robot->getJointLimits(4).second*4.0);
+	ui->horizontalScrollBar_J5->setMinimum(this->robot->getJointLimits(5).first*4.0);
+	ui->horizontalScrollBar_J5->setMaximum(this->robot->getJointLimits(5).second*4.0);
+
+	onRobotConfigurationChanged();
+}
+
+void ControlsWidget::onRobotConfigurationChanged()
+{
+	QVector3D toolPosition=robot->getToolPosition();
+	ui->lineEdit_current_x->setText(QString::number(toolPosition.x(), 'f', 3));
+	ui->lineEdit_current_y->setText(QString::number(toolPosition.y(), 'f', 3));
+	ui->lineEdit_current_z->setText(QString::number(toolPosition.z(), 'f', 3));
+	ui->lineEdit_j0->setText(QString::number(robot->jointAngle(0), 'f', 3));
+	ui->lineEdit_j1->setText(QString::number(robot->jointAngle(1), 'f', 3));
+	ui->lineEdit_j2->setText(QString::number(robot->jointAngle(2), 'f', 3));
+	ui->lineEdit_j3->setText(QString::number(robot->jointAngle(3), 'f', 3));
+	ui->lineEdit_j4->setText(QString::number(robot->jointAngle(4), 'f', 3));
+	ui->lineEdit_j5->setText(QString::number(robot->jointAngle(5), 'f', 3));
+}
+
 void ControlsWidget::onJ0ControlValueChanged(int value)
 {
 	double angle=value/4.0;
@@ -52,4 +100,37 @@ void ControlsWidget::onJ5ControlValueChanged(int value)
 {
 	double angle=value/4.0;
 	emit jointControlValueChanged(5, angle);
+}
+
+void ControlsWidget::on_pushButton_solve_ik_clicked()
+{
+	emit needToSetTargetPosition(QVector3D(
+		ui->lineEdit_target_x->text().toFloat(),
+		ui->lineEdit_target_y->text().toFloat(),
+		ui->lineEdit_target_z->text().toFloat()));
+	emit needToStartAnimation();
+}
+
+void ControlsWidget::on_lineEdit_target_x_textChanged(const QString &arg1)
+{
+	emit needToSetTargetPosition(QVector3D(
+		ui->lineEdit_target_x->text().toFloat(),
+		ui->lineEdit_target_y->text().toFloat(),
+		ui->lineEdit_target_z->text().toFloat()));
+}
+
+void ControlsWidget::on_lineEdit_target_y_textChanged(const QString &arg1)
+{
+	emit needToSetTargetPosition(QVector3D(
+		ui->lineEdit_target_x->text().toFloat(),
+		ui->lineEdit_target_y->text().toFloat(),
+		ui->lineEdit_target_z->text().toFloat()));
+}
+
+void ControlsWidget::on_lineEdit_target_z_textChanged(const QString &arg1)
+{
+	emit needToSetTargetPosition(QVector3D(
+		ui->lineEdit_target_x->text().toFloat(),
+		ui->lineEdit_target_y->text().toFloat(),
+		ui->lineEdit_target_z->text().toFloat()));
 }

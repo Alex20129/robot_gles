@@ -14,8 +14,11 @@ GeometryEngine::GeometryEngine()
 {
 	indexBuf=QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
 
-	minCoord = QVector3D( 1e9, 1e9, 1e9);
-	maxCoord = QVector3D(-1e9, -1e9, -1e9);
+	minCoord=QVector3D( 1e9, 1e9, 1e9);
+	maxCoord=QVector3D(-1e9, -1e9, -1e9);
+
+	modelColor=QVector3D(1.0f, 1.0f, 1.0f);
+	lightColor=QVector3D(1.0f, 1.0f, 1.0f);
 
 	initializeOpenGLFunctions();
 	arrayBuf.create();
@@ -38,11 +41,11 @@ void GeometryEngine::updateBounds(const QVector3D &v)
 	maxCoord.setY(qMax(maxCoord.y(), v.y()));
 	maxCoord.setZ(qMax(maxCoord.z(), v.z()));
 
-	centerVec = (minCoord + maxCoord) / 2.0;
-	sizeVec = maxCoord - minCoord;
+	centerVec=(minCoord + maxCoord) / 2.0;
+	sizeVec=maxCoord - minCoord;
 }
 
-void GeometryEngine::loadGeometryFromStlFile(const QString &filename)
+void GeometryEngine::loadModelFromStlFile(const QString &filename)
 {
 	arrayBuf.destroy();
 	indexBuf.destroy();
@@ -61,11 +64,10 @@ void GeometryEngine::loadGeometryFromStlFile(const QString &filename)
 	stream.setByteOrder(QDataStream::LittleEndian);
 	stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
-	// Пропускаем 80-байтный заголовок
 	QByteArray header(80, 0);
 	stream.readRawData(header.data(), 80);
 
-	quint32 numTriangles = 0;
+	quint32 numTriangles=0;
 	stream >> numTriangles;
 
 	if (numTriangles < 4 || numTriangles > 8000000)
@@ -80,7 +82,7 @@ void GeometryEngine::loadGeometryFromStlFile(const QString &filename)
 	vertices.reserve(numTriangles * 3);
 	indices.reserve (numTriangles * 3);
 
-	for (quint32 i = 0; i < numTriangles; ++i)
+	for (quint32 i=0; i < numTriangles; ++i)
 	{
 		QVector3D normal, v1, v2, v3;
 
@@ -97,7 +99,7 @@ void GeometryEngine::loadGeometryFromStlFile(const QString &filename)
 		quint16 attribute;
 		stream >> attribute;
 
-		int base = vertices.size();
+		int base=vertices.size();
 
 		vertices << VertexData{v1, normal};
 		vertices << VertexData{v2, normal};
@@ -108,14 +110,24 @@ void GeometryEngine::loadGeometryFromStlFile(const QString &filename)
 
 	file.close();
 
-	vertexCount = vertices.size();
-	indexCount = indices.size();
+	vertexCount=vertices.size();
+	indexCount=indices.size();
 
 	arrayBuf.bind();
 	arrayBuf.allocate(vertices.constData(), vertexCount * sizeof(VertexData));
 
 	indexBuf.bind();
 	indexBuf.allocate(indices.constData(), indexCount * sizeof(quint32));
+}
+
+void GeometryEngine::setModelColor(const QVector3D &model_color)
+{
+	modelColor=model_color;
+}
+
+void GeometryEngine::setLightColor(const QVector3D &light_color)
+{
+	lightColor=light_color;
 }
 
 void GeometryEngine::drawGeometry(QOpenGLShaderProgram *program, const QMatrix4x4 &model_matrix)
@@ -126,29 +138,29 @@ void GeometryEngine::drawGeometry(QOpenGLShaderProgram *program, const QMatrix4x
 	program->setUniformValue("model_matrix", model_matrix);
 	program->setUniformValue("normal_matrix", model_matrix.normalMatrix());
 
-	program->setUniformValue("u_materialColor",  QVector3D(0.75f, 0.95f, 0.95f));
-	program->setUniformValue("u_shininess",    64.0f);
+	program->setUniformValue("u_materialColor",	modelColor);
+	program->setUniformValue("u_shininess", 64.0f);
 	program->setUniformValue("u_lightDirection", QVector3D(0.0f, 1.0f, 1.0f).normalized());
-	program->setUniformValue("u_lightColor",   QVector3D(1.0f, 1.0f, 1.0f));
+	program->setUniformValue("u_lightColor", lightColor);
 	program->setUniformValue("u_ambientStrength", 0.12f);
 
-	int vertexLocation = program->attributeLocation("a_position");
+	int vertexLocation=program->attributeLocation("a_position");
 	program->enableAttributeArray(vertexLocation);
 	program->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 3, sizeof(VertexData));
 
-	int normalLocation = program->attributeLocation("a_normal");
+	int normalLocation=program->attributeLocation("a_normal");
 	program->enableAttributeArray(normalLocation);
 	program->setAttributeBuffer(normalLocation, GL_FLOAT, 3 * sizeof(float), 3, sizeof(VertexData));
 
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 }
 
-QVector3D GeometryEngine::center() const
+const QVector3D &GeometryEngine::center() const
 {
 	return centerVec;
 }
 
-QVector3D GeometryEngine::size() const
+const QVector3D &GeometryEngine::size() const
 {
 	return sizeVec;
 }

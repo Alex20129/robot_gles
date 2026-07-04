@@ -11,16 +11,19 @@ class GeometryEngine : protected QOpenGLFunctions
 	QOpenGLBuffer indexBuf;
 	QVector3D minCoord, maxCoord;
 	QVector3D sizeVec, centerVec;
-	int vertexCount = 0;
-	int indexCount = 0;
+	QVector3D modelColor, lightColor;
+	int vertexCount=0;
+	int indexCount=0;
 	void updateBounds(const QVector3D &v);
 public:
-	void loadGeometryFromStlFile(const QString &filename);
+	void loadModelFromStlFile(const QString &filename);
 	GeometryEngine();
 	virtual ~GeometryEngine();
+	void setModelColor(const QVector3D &model_color);
+	void setLightColor(const QVector3D &light_color);
 	void drawGeometry(QOpenGLShaderProgram *program, const QMatrix4x4 &model_matrix);
-	QVector3D center() const;
-	QVector3D size() const;
+	const QVector3D &center() const;
+	const QVector3D &size() const;
 };
 
 #endif // GEOMETRYENGINE_HPP

@@ -4,7 +4,6 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
-#include <QBasicTimer>
 #include "geometryengine.hpp"
 #include "robot.hpp"
 
@@ -16,10 +15,9 @@ namespace Ui
 class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
 	Q_OBJECT
-	QBasicTimer animationTimer;
 	QOpenGLShaderProgram program;
-	QVector <GeometryEngine *> mLinkGeometry;
-	QRobot *robot;
+	QVector <GeometryEngine *> mModelGeometry;
+	QRobot *robot=nullptr;
 	QMatrix4x4 projectionMatrix;
 	QVector2D mousePressPosition;
 	QVector3D rotationAxis;
@@ -30,12 +28,15 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 	float mCameraYaw=0;
 	Ui::RobotViewWidget *ui;
 
+private slots:
+	void onRobotConfigurationChanged();
+	void onRobotTargetPositionChanged();
+
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
-	void timerEvent(QTimerEvent *event) override;
 	void initializeGL() override;
 	void resizeGL(int w, int h) override;
 	void paintGL() override;
@@ -45,9 +46,6 @@ public:
 	RobotViewWidget(QWidget *parent = nullptr);
 	~RobotViewWidget();
 	void attachRobot(QRobot *robot);
-
-public slots:
-	void onRobotConfigurationChanged();
 };
 
 #endif // ROBOTVIEWWIDGET_HPP

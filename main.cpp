@@ -21,11 +21,10 @@ int main(int argc, char *argv[])
 	RobotViewWidget *rvWidget=new RobotViewWidget;
 	rvWidget->resize(1024, 768);
 	rvWidget->attachRobot(robot);
-	QObject::connect(robot, &QRobot::configurationChanged, rvWidget, &RobotViewWidget::onRobotConfigurationChanged);
 
 	ControlsWidget *cWidget=new ControlsWidget;
-	QObject::connect(cWidget, &ControlsWidget::jointControlValueChanged, robot, &QRobot::setJointAngle);
-	QObject::connect(cWidget, &ControlsWidget::jointControlValueChanged, robot, &QRobot::solveForwardKinematics);
+	cWidget->attachRobot(robot);
+
 
 	rvWidget->show();
 	cWidget->show();

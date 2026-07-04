@@ -4,32 +4,44 @@
 
 RobotViewWidget::RobotViewWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
-	robot=nullptr;
 	mCameraRotationQ = QQuaternion::fromAxisAndAngle(1, 0, 0, -90.0);
 	ui=new Ui::RobotViewWidget;
 	ui->setupUi(this);
-	//animationTimer.start(10, this);
 }
 
 RobotViewWidget::~RobotViewWidget()
 {
 	makeCurrent();
-	qDeleteAll(mLinkGeometry);
+	qDeleteAll(mModelGeometry);
 	doneCurrent();
 	delete ui;
 }
 
+void RobotViewWidget::attachRobot(QRobot *robot)
+{
+	if(nullptr==robot)
+	{
+		return;
+	}
+	if(nullptr!=this->robot)
+	{
+		QObject::disconnect(this->robot, nullptr, this, nullptr);
+		QObject::disconnect(this, nullptr, this->robot, nullptr);
+	}
+	this->robot=robot;
+	QObject::connect(robot, &QRobot::configurationChanged, this, &RobotViewWidget::onRobotConfigurationChanged);
+	QObject::connect(robot, &QRobot::targetPositionChanged, this, &RobotViewWidget::onRobotTargetPositionChanged);
+	onRobotConfigurationChanged();
+}
+
 void RobotViewWidget::onRobotConfigurationChanged()
 {
-	//QVector3D toolPositionVec=robot->getToolPosition();
-	//qDebug()<<toolPositionVec;
-	//qDebug()<<toolPositionVec.length();
 	update();
 }
 
-void RobotViewWidget::attachRobot(QRobot *robot)
+void RobotViewWidget::onRobotTargetPositionChanged()
 {
-	this->robot=robot;
+	update();
 }
 
 void RobotViewWidget::mousePressEvent(QMouseEvent *event)
@@ -83,19 +95,9 @@ void RobotViewWidget::wheelEvent(QWheelEvent *event)
 	update();
 }
 
-void RobotViewWidget::timerEvent(QTimerEvent *event)
-{
-	event->accept();
-	if(!robot)
-	{
-		return;
-	}
-	//animationTimer.stop();
-}
-
 void RobotViewWidget::initializeGL()
 {
-	static const QStringList mLinksSTLFiles=
+	static const QStringList mSTLFiles=
 	{
 		QString("robot_00.stl"),
 		QString("robot_01.stl"),
@@ -103,12 +105,24 @@ void RobotViewWidget::initializeGL()
 		QString("robot_03.stl"),
 		QString("robot_04.stl"),
 		QString("robot_05.stl"),
+		QString("target.stl"),
 	};
-	for(int linkID=0; linkID<QRobot::numOfJoints; linkID++)
+	static const QVector<QVector3D> mColors=
 	{
-		GeometryEngine *newLinkGeometry=new GeometryEngine;
-		newLinkGeometry->loadGeometryFromStlFile(mLinksSTLFiles.at(linkID));
-		mLinkGeometry.append(newLinkGeometry);
+		QVector3D(0.75f, 0.95f, 0.95f),
+		QVector3D(0.75f, 0.95f, 0.95f),
+		QVector3D(0.75f, 0.95f, 0.95f),
+		QVector3D(0.75f, 0.95f, 0.95f),
+		QVector3D(0.75f, 0.95f, 0.95f),
+		QVector3D(0.75f, 0.95f, 0.95f),
+		QVector3D(0.97f, 0.21f, 0.21f),
+	};
+	for(int modelID=0; modelID<mSTLFiles.size(); modelID++)
+	{
+		GeometryEngine *newModelGeometry=new GeometryEngine;
+		newModelGeometry->loadModelFromStlFile(mSTLFiles.at(modelID));
+		newModelGeometry->setModelColor(mColors.at(modelID));
+		mModelGeometry.append(newModelGeometry);
 	}
 	initializeOpenGLFunctions();
 	initShaders();
@@ -160,11 +174,17 @@ void RobotViewWidget::paintGL()
 	view.translate(0, 0, mZoom);
 	view.rotate(mCameraRotationQ);
 
-	for (size_t i = 0; i < robot->numOfJoints; ++i)
+	size_t i;
+	for (i = 0; i < robot->numOfJoints; ++i)
 	{
 		QMatrix4x4 linkMatrix = view * robot->getLinkMatrix(i);
 		QMatrix4x4 mvp = projectionMatrix * linkMatrix;
 		program.setUniformValue("mvp_matrix", mvp);
-		mLinkGeometry.at(i)->drawGeometry(&program, linkMatrix);
+		mModelGeometry.at(i)->drawGeometry(&program, linkMatrix);
 	}
+
+	QMatrix4x4 targetMatrix = view * robot->getTargetMatrix();
+	QMatrix4x4 mvp = projectionMatrix * targetMatrix;
+	program.setUniformValue("mvp_matrix", mvp);
+	mModelGeometry.at(i)->drawGeometry(&program, targetMatrix);
 }
