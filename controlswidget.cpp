@@ -36,18 +36,18 @@ void ControlsWidget::attachRobot(QRobot *robot)
 	QObject::connect(this, &ControlsWidget::needToStartAnimation, robot, &QRobot::startAnimation);
 	QObject::connect(robot, &QRobot::configurationChanged, this, &ControlsWidget::onRobotConfigurationChanged);
 
-	ui->horizontalScrollBar_J0->setMinimum(this->robot->getJointLimits(0).first*4.0);
-	ui->horizontalScrollBar_J0->setMaximum(this->robot->getJointLimits(0).second*4.0);
-	ui->horizontalScrollBar_J1->setMinimum(this->robot->getJointLimits(1).first*4.0);
-	ui->horizontalScrollBar_J1->setMaximum(this->robot->getJointLimits(1).second*4.0);
-	ui->horizontalScrollBar_J2->setMinimum(this->robot->getJointLimits(2).first*4.0);
-	ui->horizontalScrollBar_J2->setMaximum(this->robot->getJointLimits(2).second*4.0);
-	ui->horizontalScrollBar_J3->setMinimum(this->robot->getJointLimits(3).first*4.0);
-	ui->horizontalScrollBar_J3->setMaximum(this->robot->getJointLimits(3).second*4.0);
-	ui->horizontalScrollBar_J4->setMinimum(this->robot->getJointLimits(4).first*4.0);
-	ui->horizontalScrollBar_J4->setMaximum(this->robot->getJointLimits(4).second*4.0);
-	ui->horizontalScrollBar_J5->setMinimum(this->robot->getJointLimits(5).first*4.0);
-	ui->horizontalScrollBar_J5->setMaximum(this->robot->getJointLimits(5).second*4.0);
+	ui->horizontalScrollBar_J0->setMinimum(this->robot->getJointLimits(0).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J0->setMaximum(this->robot->getJointLimits(0).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J1->setMinimum(this->robot->getJointLimits(1).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J1->setMaximum(this->robot->getJointLimits(1).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J2->setMinimum(this->robot->getJointLimits(2).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J2->setMaximum(this->robot->getJointLimits(2).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J3->setMinimum(this->robot->getJointLimits(3).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J3->setMaximum(this->robot->getJointLimits(3).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J4->setMinimum(this->robot->getJointLimits(4).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J4->setMaximum(this->robot->getJointLimits(4).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J5->setMinimum(this->robot->getJointLimits(5).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J5->setMaximum(this->robot->getJointLimits(5).second*controlsMultiplicator);
 
 	onRobotConfigurationChanged();
 }
@@ -68,37 +68,37 @@ void ControlsWidget::onRobotConfigurationChanged()
 
 void ControlsWidget::onJ0ControlValueChanged(int value)
 {
-	double angle=value/4.0;
+	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(0, angle);
 }
 
 void ControlsWidget::onJ1ControlValueChanged(int value)
 {
-	double angle=value/4.0;
+	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(1, angle);
 }
 
 void ControlsWidget::onJ2ControlValueChanged(int value)
 {
-	double angle=value/4.0;
+	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(2, angle);
 }
 
 void ControlsWidget::onJ3ControlValueChanged(int value)
 {
-	double angle=value/4.0;
+	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(3, angle);
 }
 
 void ControlsWidget::onJ4ControlValueChanged(int value)
 {
-	double angle=value/4.0;
+	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(4, angle);
 }
 
 void ControlsWidget::onJ5ControlValueChanged(int value)
 {
-	double angle=value/4.0;
+	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(5, angle);
 }
 

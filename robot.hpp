@@ -12,8 +12,8 @@ class QRobot : public QObject
 	Q_OBJECT
 	QBasicTimer mAnimationTimer;
 	QVector <double> mJointAngles; // rad
-	QVector <double> mJointMin; // rad
-	QVector <double> mJointMax; // rad
+	QVector <double> mJointLimitMin; // rad
+	QVector <double> mJointLimitMax; // rad
 	QVector <double> mLinkLengths; // mm
 	QVector <QMatrix4x4> mLinkMatrices;
 	QMatrix4x4 mTargetMatrix;
@@ -21,7 +21,7 @@ class QRobot : public QObject
 	QVector3D mStartPosition;
 	QVector3D mTargetPosition;
 	QQuaternion mTargetOrientation;
-	uint32_t ikIterationsPerCycle=64;
+	uint32_t ikIterationsPerCycle=32;
 	double mAnimationProgress;
 	bool ikSolved=true;
 	void recalculateLinkMatrices();

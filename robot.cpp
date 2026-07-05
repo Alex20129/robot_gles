@@ -24,28 +24,28 @@ void QRobot::timerEvent(QTimerEvent *event)
 QRobot::QRobot(QObject *parent) : QObject(parent)
 {
 	mJointAngles.resize(numOfJoints);
-	mJointMin.resize(numOfJoints);
-	mJointMax.resize(numOfJoints);
+	mJointLimitMin.resize(numOfJoints);
+	mJointLimitMax.resize(numOfJoints);
 	mLinkMatrices.resize(numOfJoints);
 
-	mJointMin =
+	mJointLimitMin =
 	{
 		-180 * DEG2RAD,
 		-90 * DEG2RAD,
-		-90 * DEG2RAD,
+		-120 * DEG2RAD,
 		-180 * DEG2RAD,
 		-90 * DEG2RAD,
 		-180 * DEG2RAD,
 	};
 
-	mJointMax =
+	mJointLimitMax =
 	{
-		180 * DEG2RAD,
-		90 * DEG2RAD,
-		90 * DEG2RAD,
-		180 * DEG2RAD,
-		90 * DEG2RAD,
-		180 * DEG2RAD,
+		180.0 * DEG2RAD,
+		90.0 * DEG2RAD,
+		120.0 * DEG2RAD,
+		180.0 * DEG2RAD,
+		90.0 * DEG2RAD,
+		180.0 * DEG2RAD,
 	};
 
 	mLinkLengths =
@@ -121,13 +121,12 @@ void QRobot::solveInverseKinematics(const QVector3D &position)
 	while (improved)
 	{
 		improved=false;
-		uint32_t ikIteration;
-		for (ikIteration=0; !improved && ikIteration<ikIterationsPerCycle; ikIteration++)
+		for (uint32_t ikIteration=0; !improved && ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
 			for (int j=0; j < numOfJoints; ++j)
 			{
 				const double oldAngle=mJointAngles[j];
-				mJointAngles[j]=qBound(mJointMin[j], oldAngle + ikStepRad[j], mJointMax[j]);
+				mJointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStepRad[j], mJointLimitMax[j]);
 				recalculateLinkMatrices();
 				const double newDistance=(position - getToolPosition()).length();
 				if (currentDistance > newDistance)
@@ -162,7 +161,7 @@ void QRobot::setJointAngle(int jointIndex, double deg)
 	{
 		return;
 	}
-	double rad=qBound(mJointMin[jointIndex], deg * DEG2RAD, mJointMax[jointIndex]);
+	double rad=qBound(mJointLimitMin[jointIndex], deg * DEG2RAD, mJointLimitMax[jointIndex]);
 	if (mJointAngles[jointIndex] != rad)
 	{
 		mJointAngles[jointIndex]=rad;
@@ -230,7 +229,7 @@ QPair<qreal, qreal> QRobot::getJointLimits(int joint_index) const
 	{
 		return {0.0, 0.0};
 	}
-	return {mJointMin[joint_index]*RAD2DEG, mJointMax[joint_index]*RAD2DEG};
+	return {mJointLimitMin[joint_index]*RAD2DEG, mJointLimitMax[joint_index]*RAD2DEG};
 }
 
 void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
@@ -239,8 +238,8 @@ void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
 	{
 		return;
 	}
-	mJointMin[joint_index]=qMin(min_deg, max_deg) * DEG2RAD;
-	mJointMax[joint_index]=qMax(min_deg, max_deg) * DEG2RAD;
+	mJointLimitMin[joint_index]=qMin(min_deg, max_deg) * DEG2RAD;
+	mJointLimitMax[joint_index]=qMax(min_deg, max_deg) * DEG2RAD;
 }
 
 const QMatrix4x4 &QRobot::getLinkMatrix(int linkIndex) const

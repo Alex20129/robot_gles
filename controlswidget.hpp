@@ -15,6 +15,7 @@ class ControlsWidget : public QWidget
 	Q_OBJECT
 	Ui::ControlsWidget *ui;
 	QRobot *robot=nullptr;
+	static constexpr double controlsMultiplicator=8.0;
 
 private slots:
 	void onRobotConfigurationChanged();
@@ -28,7 +29,6 @@ private slots:
 	void on_lineEdit_target_x_textChanged(const QString &arg1);
 	void on_lineEdit_target_y_textChanged(const QString &arg1);
 	void on_lineEdit_target_z_textChanged(const QString &arg1);
-
 public:
 	explicit ControlsWidget(QWidget *parent = nullptr);
 	~ControlsWidget();

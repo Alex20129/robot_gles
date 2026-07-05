@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>838</width>
+    <width>819</width>
     <height>787</height>
    </rect>
   </property>
@@ -37,9 +37,6 @@
         <property name="maximum">
          <number>1</number>
         </property>
-        <property name="pageStep">
-         <number>4</number>
-        </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -66,9 +63,6 @@
         <property name="maximum">
          <number>1</number>
         </property>
-        <property name="pageStep">
-         <number>4</number>
-        </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -87,9 +81,6 @@
         </property>
         <property name="maximum">
          <number>1</number>
-        </property>
-        <property name="pageStep">
-         <number>4</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -116,9 +107,6 @@
         </property>
         <property name="maximum">
          <number>1</number>
-        </property>
-        <property name="pageStep">
-         <number>4</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -160,9 +148,6 @@
         <property name="maximum">
          <number>1</number>
         </property>
-        <property name="pageStep">
-         <number>4</number>
-        </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -188,12 +173,6 @@
         </property>
         <property name="maximum">
          <number>1</number>
-        </property>
-        <property name="singleStep">
-         <number>1</number>
-        </property>
-        <property name="pageStep">
-         <number>4</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
