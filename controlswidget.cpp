@@ -58,12 +58,12 @@ void ControlsWidget::onRobotConfigurationChanged()
 	ui->lineEdit_current_x->setText(QString::number(toolPosition.x(), 'f', 3));
 	ui->lineEdit_current_y->setText(QString::number(toolPosition.y(), 'f', 3));
 	ui->lineEdit_current_z->setText(QString::number(toolPosition.z(), 'f', 3));
-	ui->lineEdit_j0->setText(QString::number(robot->jointAngle(0), 'f', 3));
-	ui->lineEdit_j1->setText(QString::number(robot->jointAngle(1), 'f', 3));
-	ui->lineEdit_j2->setText(QString::number(robot->jointAngle(2), 'f', 3));
-	ui->lineEdit_j3->setText(QString::number(robot->jointAngle(3), 'f', 3));
-	ui->lineEdit_j4->setText(QString::number(robot->jointAngle(4), 'f', 3));
-	ui->lineEdit_j5->setText(QString::number(robot->jointAngle(5), 'f', 3));
+	ui->lineEdit_j0->setText(QString::number(robot->getJointAngle(0), 'f', 3));
+	ui->lineEdit_j1->setText(QString::number(robot->getJointAngle(1), 'f', 3));
+	ui->lineEdit_j2->setText(QString::number(robot->getJointAngle(2), 'f', 3));
+	ui->lineEdit_j3->setText(QString::number(robot->getJointAngle(3), 'f', 3));
+	ui->lineEdit_j4->setText(QString::number(robot->getJointAngle(4), 'f', 3));
+	ui->lineEdit_j5->setText(QString::number(robot->getJointAngle(5), 'f', 3));
 }
 
 void ControlsWidget::onJ0ControlValueChanged(int value)

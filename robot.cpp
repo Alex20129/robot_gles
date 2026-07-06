@@ -8,14 +8,14 @@ constexpr double RAD2DEG=180.0 / M_PI;
 void QRobot::timerEvent(QTimerEvent *event)
 {
 	event->accept();
-	mAnimationProgress+=0.004;
-	if(mAnimationProgress>1.0)
-	{
-		mAnimationProgress=1.0;
-		mAnimationTimer.stop();
-	}
 	if(ikSolved)
 	{
+		mAnimationProgress+=mAnimationStep;
+		if(mAnimationProgress>1.0)
+		{
+			mAnimationProgress=1.0;
+			mAnimationTimer.stop();
+		}
 		ikSolved=false;
 		solveInverseKinematics(mStartPosition+(mTargetPosition-mStartPosition)*mAnimationProgress);
 	}
@@ -151,6 +151,7 @@ void QRobot::startAnimation()
 	mStartPosition=getToolPosition();
 	//mStartOrientation=getToolOrientation();
 	mAnimationProgress=0.0;
+	mAnimationStep=1.0/(mTargetPosition-mStartPosition).length();
 	mAnimationTimer.start(10, this);
 }
 
@@ -214,7 +215,17 @@ void QRobot::setTargetOrientation(const QQuaternion &target_orientation)
 	}
 }
 
-double QRobot::jointAngle(int joint_index) const
+void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
+{
+	if (joint_index < 0 || joint_index >= numOfJoints)
+	{
+		return;
+	}
+	mJointLimitMin[joint_index]=qMin(min_deg, max_deg) * DEG2RAD;
+	mJointLimitMax[joint_index]=qMax(min_deg, max_deg) * DEG2RAD;
+}
+
+double QRobot::getJointAngle(int joint_index) const
 {
 	if (joint_index < 0 || joint_index >= numOfJoints)
 	{
@@ -230,16 +241,6 @@ QPair<qreal, qreal> QRobot::getJointLimits(int joint_index) const
 		return {0.0, 0.0};
 	}
 	return {mJointLimitMin[joint_index]*RAD2DEG, mJointLimitMax[joint_index]*RAD2DEG};
-}
-
-void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
-{
-	if (joint_index < 0 || joint_index >= numOfJoints)
-	{
-		return;
-	}
-	mJointLimitMin[joint_index]=qMin(min_deg, max_deg) * DEG2RAD;
-	mJointLimitMax[joint_index]=qMax(min_deg, max_deg) * DEG2RAD;
 }
 
 const QMatrix4x4 &QRobot::getLinkMatrix(int linkIndex) const

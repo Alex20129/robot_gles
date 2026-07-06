@@ -23,6 +23,7 @@ class QRobot : public QObject
 	QQuaternion mTargetOrientation;
 	uint32_t ikIterationsPerCycle=32;
 	double mAnimationProgress;
+	double mAnimationStep;
 	bool ikSolved=true;
 	void recalculateLinkMatrices();
 	void recalculateTargetMatrix();
@@ -34,10 +35,10 @@ public:
 	static constexpr int numOfJoints=6;
 	QRobot(QObject *parent=nullptr);
 
-	double jointAngle(int joint_index) const;
-	QPair<qreal, qreal> getJointLimits(int joint_index) const;
-
 	void setJointLimits(int joint_index, double min_deg, double max_deg);
+
+	double getJointAngle(int joint_index) const;
+	QPair<qreal, qreal> getJointLimits(int joint_index) const;
 	const QMatrix4x4 &getLinkMatrix(int linkIndex) const;
 	const QMatrix4x4 &getTargetMatrix() const;
 	QVector3D getToolPosition() const;
