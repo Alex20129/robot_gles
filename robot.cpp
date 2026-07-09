@@ -15,6 +15,7 @@ void QRobot::timerEvent(QTimerEvent *event)
 		{
 			mAnimationProgress=1.0;
 			mAnimationTimer.stop();
+			emit animationFinished();
 		}
 		ikSolved=false;
 		solveInverseKinematics(mStartPosition+(mTargetPosition-mStartPosition)*mAnimationProgress);

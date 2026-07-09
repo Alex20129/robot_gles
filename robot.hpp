@@ -57,6 +57,7 @@ public slots:
 signals:
 	void configurationChanged();
 	void targetPositionChanged();
+	void animationFinished();
 };
 
 #endif // ROBOT_HPP
