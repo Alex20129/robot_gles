@@ -468,7 +468,7 @@
     </widget>
    </item>
    <item row="5" column="1">
-    <widget class="QPushButton" name="pushButton_solve_ik">
+    <widget class="QPushButton" name="pushButton_start_animation">
      <property name="text">
       <string>Start</string>
      </property>

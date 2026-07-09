@@ -24,86 +24,135 @@ void ControlsWidget::attachRobot(QRobot *robot)
 	{
 		return;
 	}
-	if(nullptr!=this->robot)
+	if(nullptr!=this->mRobot)
 	{
-		QObject::disconnect(this->robot, nullptr, this, nullptr);
-		QObject::disconnect(this, nullptr, this->robot, nullptr);
+		QObject::disconnect(this->mRobot, nullptr, this, nullptr);
+		QObject::disconnect(this, nullptr, this->mRobot, nullptr);
 	}
-	this->robot=robot;
-
-	QObject::connect(this, &ControlsWidget::jointControlValueChanged, robot, &QRobot::setJointAngle);
-	QObject::connect(this, &ControlsWidget::needToSetTargetPosition, robot, &QRobot::setTargetPosition);
-	QObject::connect(this, &ControlsWidget::needToStartAnimation, robot, &QRobot::startAnimation);
-	QObject::connect(robot, &QRobot::configurationChanged, this, &ControlsWidget::onRobotConfigurationChanged);
-
-	ui->horizontalScrollBar_J0->setMinimum(this->robot->getJointLimits(0).first*controlsMultiplicator);
-	ui->horizontalScrollBar_J0->setMaximum(this->robot->getJointLimits(0).second*controlsMultiplicator);
-	ui->horizontalScrollBar_J1->setMinimum(this->robot->getJointLimits(1).first*controlsMultiplicator);
-	ui->horizontalScrollBar_J1->setMaximum(this->robot->getJointLimits(1).second*controlsMultiplicator);
-	ui->horizontalScrollBar_J2->setMinimum(this->robot->getJointLimits(2).first*controlsMultiplicator);
-	ui->horizontalScrollBar_J2->setMaximum(this->robot->getJointLimits(2).second*controlsMultiplicator);
-	ui->horizontalScrollBar_J3->setMinimum(this->robot->getJointLimits(3).first*controlsMultiplicator);
-	ui->horizontalScrollBar_J3->setMaximum(this->robot->getJointLimits(3).second*controlsMultiplicator);
-	ui->horizontalScrollBar_J4->setMinimum(this->robot->getJointLimits(4).first*controlsMultiplicator);
-	ui->horizontalScrollBar_J4->setMaximum(this->robot->getJointLimits(4).second*controlsMultiplicator);
-	ui->horizontalScrollBar_J5->setMinimum(this->robot->getJointLimits(5).first*controlsMultiplicator);
-	ui->horizontalScrollBar_J5->setMaximum(this->robot->getJointLimits(5).second*controlsMultiplicator);
-
+	mRobot=robot;
+	QObject::connect(this, &ControlsWidget::jointControlValueChanged, mRobot, &QRobot::setJointAngle);
+	QObject::connect(this, &ControlsWidget::needToSetTargetPosition, mRobot, &QRobot::setTargetPosition);
+	QObject::connect(this, &ControlsWidget::needToStartAnimation, mRobot, &QRobot::startAnimation);
+	QObject::connect(mRobot, &QRobot::configurationChanged, this, &ControlsWidget::onRobotConfigurationChanged);
+	ui->horizontalScrollBar_J0->setMinimum(mRobot->getJointLimits(0).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J0->setMaximum(mRobot->getJointLimits(0).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J1->setMinimum(mRobot->getJointLimits(1).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J1->setMaximum(mRobot->getJointLimits(1).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J2->setMinimum(mRobot->getJointLimits(2).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J2->setMaximum(mRobot->getJointLimits(2).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J3->setMinimum(mRobot->getJointLimits(3).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J3->setMaximum(mRobot->getJointLimits(3).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J4->setMinimum(mRobot->getJointLimits(4).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J4->setMaximum(mRobot->getJointLimits(4).second*controlsMultiplicator);
+	ui->horizontalScrollBar_J5->setMinimum(mRobot->getJointLimits(5).first*controlsMultiplicator);
+	ui->horizontalScrollBar_J5->setMaximum(mRobot->getJointLimits(5).second*controlsMultiplicator);
 	onRobotConfigurationChanged();
 }
 
 void ControlsWidget::onRobotConfigurationChanged()
 {
-	QVector3D toolPosition=robot->getToolPosition();
+	mMuteControls=true;
+
+	double jointAngle;
+
+	QVector3D toolPosition=mRobot->getToolPosition();
 	ui->lineEdit_current_x->setText(QString::number(toolPosition.x(), 'f', 3));
 	ui->lineEdit_current_y->setText(QString::number(toolPosition.y(), 'f', 3));
 	ui->lineEdit_current_z->setText(QString::number(toolPosition.z(), 'f', 3));
-	ui->lineEdit_j0->setText(QString::number(robot->getJointAngle(0), 'f', 3));
-	ui->lineEdit_j1->setText(QString::number(robot->getJointAngle(1), 'f', 3));
-	ui->lineEdit_j2->setText(QString::number(robot->getJointAngle(2), 'f', 3));
-	ui->lineEdit_j3->setText(QString::number(robot->getJointAngle(3), 'f', 3));
-	ui->lineEdit_j4->setText(QString::number(robot->getJointAngle(4), 'f', 3));
-	ui->lineEdit_j5->setText(QString::number(robot->getJointAngle(5), 'f', 3));
+
+	jointAngle=mRobot->getJointAngle(0);
+	ui->lineEdit_j0->setText(QString::number(jointAngle, 'f', 3));
+	ui->horizontalScrollBar_J0->setSliderPosition(jointAngle*controlsMultiplicator);
+
+	jointAngle=mRobot->getJointAngle(1);
+	ui->lineEdit_j1->setText(QString::number(jointAngle, 'f', 3));
+	ui->horizontalScrollBar_J1->setSliderPosition(jointAngle*controlsMultiplicator);
+
+	jointAngle=mRobot->getJointAngle(2);
+	ui->lineEdit_j2->setText(QString::number(jointAngle, 'f', 3));
+	ui->horizontalScrollBar_J2->setSliderPosition(jointAngle*controlsMultiplicator);
+
+	jointAngle=mRobot->getJointAngle(3);
+	ui->lineEdit_j3->setText(QString::number(jointAngle, 'f', 3));
+	ui->horizontalScrollBar_J3->setSliderPosition(jointAngle*controlsMultiplicator);
+
+	jointAngle=mRobot->getJointAngle(4);
+	ui->lineEdit_j4->setText(QString::number(jointAngle, 'f', 3));
+	ui->horizontalScrollBar_J4->setSliderPosition(jointAngle*controlsMultiplicator);
+
+	jointAngle=mRobot->getJointAngle(5);
+	ui->lineEdit_j5->setText(QString::number(jointAngle, 'f', 3));
+	ui->horizontalScrollBar_J5->setSliderPosition(jointAngle*controlsMultiplicator);
+
+	mMuteControls=false;
 }
 
 void ControlsWidget::onJ0ControlValueChanged(int value)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(0, angle);
 }
 
 void ControlsWidget::onJ1ControlValueChanged(int value)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(1, angle);
 }
 
 void ControlsWidget::onJ2ControlValueChanged(int value)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(2, angle);
 }
 
 void ControlsWidget::onJ3ControlValueChanged(int value)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(3, angle);
 }
 
 void ControlsWidget::onJ4ControlValueChanged(int value)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(4, angle);
 }
 
 void ControlsWidget::onJ5ControlValueChanged(int value)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	double angle=value/controlsMultiplicator;
 	emit jointControlValueChanged(5, angle);
 }
 
-void ControlsWidget::on_pushButton_solve_ik_clicked()
+void ControlsWidget::on_pushButton_start_animation_clicked()
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	emit needToSetTargetPosition(QVector3D(
 		ui->lineEdit_target_x->text().toFloat(),
 		ui->lineEdit_target_y->text().toFloat(),
@@ -113,6 +162,10 @@ void ControlsWidget::on_pushButton_solve_ik_clicked()
 
 void ControlsWidget::on_lineEdit_target_x_textChanged(const QString &arg1)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	emit needToSetTargetPosition(QVector3D(
 		ui->lineEdit_target_x->text().toFloat(),
 		ui->lineEdit_target_y->text().toFloat(),
@@ -121,6 +174,10 @@ void ControlsWidget::on_lineEdit_target_x_textChanged(const QString &arg1)
 
 void ControlsWidget::on_lineEdit_target_y_textChanged(const QString &arg1)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	emit needToSetTargetPosition(QVector3D(
 		ui->lineEdit_target_x->text().toFloat(),
 		ui->lineEdit_target_y->text().toFloat(),
@@ -129,6 +186,10 @@ void ControlsWidget::on_lineEdit_target_y_textChanged(const QString &arg1)
 
 void ControlsWidget::on_lineEdit_target_z_textChanged(const QString &arg1)
 {
+	if(mMuteControls)
+	{
+		return;
+	}
 	emit needToSetTargetPosition(QVector3D(
 		ui->lineEdit_target_x->text().toFloat(),
 		ui->lineEdit_target_y->text().toFloat(),
