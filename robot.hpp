@@ -17,7 +17,8 @@ class QRobot : public QObject
 	QVector <double> mLinkLengths; // mm
 	QVector <QMatrix4x4> mLinkMatrices;
 	QMatrix4x4 mTargetMatrix;
-	QMatrix4x4 mEEMatrix;
+	QMatrix4x4 mWristMatrix;
+	QMatrix4x4 mFlangeMatrix;
 	QVector3D mStartPosition;
 	QVector3D mTargetPosition;
 	QQuaternion mTargetOrientation;
@@ -41,8 +42,8 @@ public:
 	QPair<qreal, qreal> getJointLimits(int joint_index) const;
 	const QMatrix4x4 &getLinkMatrix(int linkIndex) const;
 	const QMatrix4x4 &getTargetMatrix() const;
-	QVector3D getToolPosition() const;
-	QQuaternion getToolOrientation() const;
+	QVector3D getFlangePosition() const;
+	QQuaternion getFlangeOrientation() const;
 	const QVector3D &getTargetPosition() const;
 	const QQuaternion &getTargetOrientation() const;
 

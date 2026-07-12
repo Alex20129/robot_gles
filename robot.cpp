@@ -53,10 +53,10 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 	{
 		90.0,
 		200.0,
-		120.0,
-		90.0,
-		120.0,
-		205.0,
+		210.0,
+		0.0,
+		0.0,
+		140.0,
 	};
 
 	mJointAngles =
@@ -88,19 +88,21 @@ void QRobot::recalculateLinkMatrices()
 	mLinkMatrices[2]=fkMatrix;
 	fkMatrix.translate(0, 0, mLinkLengths[2]);
 
+	mWristMatrix=fkMatrix;
+
 	fkMatrix.rotate(mJointAngles[3] * RAD2DEG, 0,0,1);
 	mLinkMatrices[3]=fkMatrix;
-	fkMatrix.translate(0, 0, mLinkLengths[3]);
+	// fkMatrix.translate(0, 0, mLinkLengths[3]);
 
 	fkMatrix.rotate(mJointAngles[4] * RAD2DEG, 1,0,0);
 	mLinkMatrices[4]=fkMatrix;
-	fkMatrix.translate(0, 0, mLinkLengths[4]);
+	// fkMatrix.translate(0, 0, mLinkLengths[4]);
 
 	fkMatrix.rotate(mJointAngles[5] * RAD2DEG, 0,0,1);
 	mLinkMatrices[5]=fkMatrix;
 	fkMatrix.translate(0, 0, mLinkLengths[5]);
 
-	mEEMatrix=fkMatrix;
+	mFlangeMatrix=fkMatrix;
 }
 
 void QRobot::recalculateTargetMatrix()
@@ -118,7 +120,7 @@ void QRobot::solveInverseKinematics(const QVector3D &position)
 	QVector<double> ikStepRad(numOfJoints, ikInitialStep);
 	bool improved=true;
 	recalculateLinkMatrices();
-	double currentDistance=(position - getToolPosition()).length();
+	double currentDistance=(position - getFlangePosition()).length();
 	while (improved)
 	{
 		improved=false;
@@ -129,7 +131,7 @@ void QRobot::solveInverseKinematics(const QVector3D &position)
 				const double oldAngle=mJointAngles[j];
 				mJointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStepRad[j], mJointLimitMax[j]);
 				recalculateLinkMatrices();
-				const double newDistance=(position - getToolPosition()).length();
+				const double newDistance=(position - getFlangePosition()).length();
 				if (currentDistance > newDistance)
 				{
 					currentDistance=newDistance;
@@ -149,8 +151,8 @@ void QRobot::solveInverseKinematics(const QVector3D &position)
 
 void QRobot::startAnimation()
 {
-	mStartPosition=getToolPosition();
-	//mStartOrientation=getToolOrientation();
+	mStartPosition=getFlangePosition();
+	//mStartOrientation=getFlangeOrientation();
 	mAnimationProgress=0.0;
 	mAnimationStep=1.0/(mTargetPosition-mStartPosition).length();
 	mAnimationTimer.start(10, this);
@@ -254,25 +256,19 @@ const QMatrix4x4 &QRobot::getTargetMatrix() const
 	return mTargetMatrix;
 }
 
-QVector3D QRobot::getToolPosition() const
+QVector3D QRobot::getFlangePosition() const
 {
 	QVector3D positionVec(
-		mEEMatrix(0, 3), // X
-		mEEMatrix(1, 3), // Y
-		mEEMatrix(2, 3)); // Z
+		mFlangeMatrix(0, 3), // X
+		mFlangeMatrix(1, 3), // Y
+		mFlangeMatrix(2, 3)); // Z
 	return positionVec;
 }
 
-QQuaternion QRobot::getToolOrientation() const
+QQuaternion QRobot::getFlangeOrientation() const
 {
-	float rotData[9] =
-	{
-		mEEMatrix(0, 0), mEEMatrix(0, 1), mEEMatrix(0, 2),
-		mEEMatrix(1, 0), mEEMatrix(1, 1), mEEMatrix(1, 2),
-		mEEMatrix(2, 0), mEEMatrix(2, 1), mEEMatrix(2, 2)
-	};
-	QMatrix3x3 rotM(rotData);
-	return QQuaternion::fromRotationMatrix(rotM);
+	QMatrix3x3 rotMat=mFlangeMatrix.toGenericMatrix<3,3>();
+	return QQuaternion::fromRotationMatrix(rotMat);
 }
 
 const QVector3D &QRobot::getTargetPosition() const

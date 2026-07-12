@@ -55,7 +55,7 @@ void ControlsWidget::onRobotConfigurationChanged()
 
 	double jointAngle;
 
-	QVector3D toolPosition=mRobot->getToolPosition();
+	QVector3D toolPosition=mRobot->getFlangePosition();
 	ui->lineEdit_current_x->setText(QString::number(toolPosition.x(), 'f', 3));
 	ui->lineEdit_current_y->setText(QString::number(toolPosition.y(), 'f', 3));
 	ui->lineEdit_current_z->setText(QString::number(toolPosition.z(), 'f', 3));
