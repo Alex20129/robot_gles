@@ -140,6 +140,7 @@ void QRobot::solveInverseKinematics(const QVector3D &position)
 				else
 				{
 					mJointAngles[j] = oldAngle;
+					recalculateLinkMatrices();
 					ikStepRad[j] *= ikSlowdownCoefficient;
 				}
 			}
