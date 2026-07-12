@@ -36,8 +36,6 @@ public:
 	static constexpr int numOfJoints=6;
 	QRobot(QObject *parent=nullptr);
 
-	void setJointLimits(int joint_index, double min_deg, double max_deg);
-
 	double getJointAngle(int joint_index) const;
 	QPair<qreal, qreal> getJointLimits(int joint_index) const;
 	const QMatrix4x4 &getLinkMatrix(int linkIndex) const;
@@ -46,10 +44,11 @@ public:
 	QQuaternion getFlangeOrientation() const;
 	const QVector3D &getTargetPosition() const;
 	const QQuaternion &getTargetOrientation() const;
+	void setJointLimits(int joint_index, double min_deg, double max_deg);
+	void setLinkLength(int link_index, double mm);
 
 public slots:
-	void setJointAngle(int jointIndex, double deg);
-	void setLinkLength(int linkIndex, double mm);
+	void setJointAngle(int joint_index, double deg);
 	void setTargetPosition(const QVector3D &target_position);
 	void setTargetOrientation(const QQuaternion &target_orientation);
 	void solveInverseKinematics(const QVector3D &position);

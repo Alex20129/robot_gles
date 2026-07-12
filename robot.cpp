@@ -159,32 +159,41 @@ void QRobot::startAnimation()
 	mAnimationTimer.start(10, this);
 }
 
-void QRobot::setJointAngle(int jointIndex, double deg)
+void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
 {
 	mAnimationTimer.stop();
-	if (jointIndex < 0 || jointIndex >= numOfJoints)
+	if (joint_index < 0 || joint_index >= numOfJoints)
 	{
 		return;
 	}
-	double rad=qBound(mJointLimitMin[jointIndex], deg * DEG2RAD, mJointLimitMax[jointIndex]);
-	if (mJointAngles[jointIndex] != rad)
+	mJointLimitMin[joint_index]=qMin(min_deg, max_deg) * DEG2RAD;
+	mJointLimitMax[joint_index]=qMax(min_deg, max_deg) * DEG2RAD;
+}
+
+void QRobot::setLinkLength(int link_index, double mm)
+{
+	mAnimationTimer.stop();
+	if (link_index < 0 || link_index >= numOfJoints)
 	{
-		mJointAngles[jointIndex]=rad;
-		recalculateLinkMatrices();
-		emit configurationChanged();
+		return;
+	}
+	if(mLinkLengths[link_index] != mm)
+	{
+		mLinkLengths[link_index]=mm;
 	}
 }
 
-void QRobot::setLinkLength(int linkIndex, double mm)
+void QRobot::setJointAngle(int joint_index, double deg)
 {
 	mAnimationTimer.stop();
-	if (linkIndex < 0 || linkIndex >= numOfJoints)
+	if (joint_index < 0 || joint_index >= numOfJoints)
 	{
 		return;
 	}
-	if(mLinkLengths[linkIndex] != mm)
+	double rad=qBound(mJointLimitMin[joint_index], deg * DEG2RAD, mJointLimitMax[joint_index]);
+	if (mJointAngles[joint_index] != rad)
 	{
-		mLinkLengths[linkIndex]=mm;
+		mJointAngles[joint_index]=rad;
 		recalculateLinkMatrices();
 		emit configurationChanged();
 	}
@@ -217,16 +226,6 @@ void QRobot::setTargetOrientation(const QQuaternion &target_orientation)
 			startAnimation();
 		}
 	}
-}
-
-void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
-{
-	if (joint_index < 0 || joint_index >= numOfJoints)
-	{
-		return;
-	}
-	mJointLimitMin[joint_index]=qMin(min_deg, max_deg) * DEG2RAD;
-	mJointLimitMax[joint_index]=qMax(min_deg, max_deg) * DEG2RAD;
 }
 
 double QRobot::getJointAngle(int joint_index) const
