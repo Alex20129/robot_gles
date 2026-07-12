@@ -11,9 +11,9 @@ class QRobot : public QObject
 {
 	Q_OBJECT
 	QBasicTimer mAnimationTimer;
-	QVector <double> mJointAngles; // rad
-	QVector <double> mJointLimitMin; // rad
-	QVector <double> mJointLimitMax; // rad
+	QVector <double> mJointAngles; // deg
+	QVector <double> mJointLimitMin; // deg
+	QVector <double> mJointLimitMax; // deg
 	QVector <double> mLinkLengths; // mm
 	QVector <QMatrix4x4> mLinkMatrices;
 	QMatrix4x4 mTargetMatrix;
@@ -31,7 +31,7 @@ class QRobot : public QObject
 	void timerEvent(QTimerEvent *event) override;
 
 public:
-	static constexpr double ikInitialStep=1.0/16.0; // rad
+	static constexpr double ikInitialStep=0.5; // deg
 	static constexpr double ikSlowdownCoefficient=-0.75;
 	static constexpr int numOfJoints=6;
 	QRobot(QObject *parent=nullptr);
