@@ -53,7 +53,7 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 		210.0,
 		0.0,
 		0.0,
-		140.0,
+		80.0,
 	};
 
 	mJointAngles =
