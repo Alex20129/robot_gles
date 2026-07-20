@@ -198,10 +198,10 @@ void QRobot::setJointAngle(int joint_index, double deg)
 	{
 		return;
 	}
-	double rad=qBound(mJointLimitMin[joint_index], deg, mJointLimitMax[joint_index]);
-	if (mJointAngles[joint_index] != rad)
+	deg=qBound(mJointLimitMin[joint_index], deg, mJointLimitMax[joint_index]);
+	if (mJointAngles[joint_index] != deg)
 	{
-		mJointAngles[joint_index]=rad;
+		mJointAngles[joint_index]=deg;
 		recalculateLinkMatrices(joint_index);
 		emit configurationChanged();
 	}
