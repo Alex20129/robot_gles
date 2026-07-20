@@ -17,8 +17,6 @@ class QRobot : public QObject
 	QVector <double> mLinkLengths; // mm
 	QVector <QMatrix4x4> mLinkMatrices;
 	QMatrix4x4 mTargetMatrix;
-	QMatrix4x4 mWristMatrix;
-	QMatrix4x4 mFlangeMatrix;
 	QVector3D mStartPosition;
 	QVector3D mTargetPosition;
 	QQuaternion mTargetOrientation;
@@ -26,7 +24,7 @@ class QRobot : public QObject
 	double mAnimationProgress;
 	double mAnimationStep;
 	bool ikSolved=true;
-	void recalculateLinkMatrices();
+	void recalculateLinkMatrices(uint32_t from);
 	void recalculateTargetMatrix();
 	void timerEvent(QTimerEvent *event) override;
 
