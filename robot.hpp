@@ -21,8 +21,10 @@ class QRobot : public QObject
 	QVector3D mTargetPosition;
 	QQuaternion mTargetOrientation;
 	uint32_t ikIterationsPerCycle=32;
-	double mAnimationProgress;
-	double mAnimationStep;
+	double mFlangeOffset=80.0;
+	double mToolOffset=0.0;
+	double mAnimationProgress=0.0;
+	double mAnimationStep=0.0;
 	bool ikSolved=true;
 	void recalculateLinkMatrices(uint32_t from);
 	void recalculateTargetMatrix();
@@ -36,14 +38,16 @@ public:
 
 	double getJointAngle(int joint_index) const;
 	QPair<qreal, qreal> getJointLimits(int joint_index) const;
-	const QMatrix4x4 &getLinkMatrix(int linkIndex) const;
+	const QMatrix4x4 &getLinkMatrix(int link_index) const;
 	const QMatrix4x4 &getTargetMatrix() const;
-	QVector3D getFlangePosition() const;
-	QQuaternion getFlangeOrientation() const;
+	QVector3D getWristPosition() const;
+	QQuaternion getWristOrientation() const;
 	const QVector3D &getTargetPosition() const;
 	const QQuaternion &getTargetOrientation() const;
 	void setJointLimits(int joint_index, double min_deg, double max_deg);
 	void setLinkLength(int link_index, double mm);
+	void setFlangeOffset(double mm);
+	void setToolOffset(double mm);
 
 public slots:
 	void setJointAngle(int joint_index, double deg);

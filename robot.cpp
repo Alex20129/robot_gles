@@ -58,7 +58,7 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 		210.0,
 		0.0,
 		0.0,
-		80.0,
+		0.0,
 	};
 
 	mJointAngles =
@@ -101,19 +101,16 @@ void QRobot::recalculateLinkMatrices(uint32_t from)
 		{
 			mLinkMatrices[3]=mLinkMatrices[2];
 			mLinkMatrices[3].rotate(mJointAngles[3], 0, 0, 1);
-			mLinkMatrices[3].translate(0, 0, mLinkLengths[3]);
 		}
 		case 4:
 		{
 			mLinkMatrices[4]=mLinkMatrices[3];
 			mLinkMatrices[4].rotate(mJointAngles[4], 1, 0, 0);
-			mLinkMatrices[4].translate(0, 0, mLinkLengths[4]);
 		}
 		case 5:
 		{
 			mLinkMatrices[5]=mLinkMatrices[4];
 			mLinkMatrices[5].rotate(mJointAngles[5], 0, 0, 1);
-			mLinkMatrices[5].translate(0, 0, mLinkLengths[5]);
 		}
 	}
 }
@@ -121,30 +118,41 @@ void QRobot::recalculateLinkMatrices(uint32_t from)
 void QRobot::recalculateTargetMatrix()
 {
 	mTargetMatrix.setToIdentity();
-	mTargetMatrix.rotate(mTargetOrientation);
 	mTargetMatrix.translate(
 		mTargetPosition.x(),
 		mTargetPosition.y(),
 		mTargetPosition.z());
+	mTargetMatrix.rotate(mTargetOrientation);
 }
 
 void QRobot::solveInverseKinematics(const QVector3D &position)
 {
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
 	bool improved=true;
+
+	QVector3D wristPosition=getWristPosition();
+
+	double wristPositionAngle_rad = std::atan2(wristPosition.y(), wristPosition.x());
+	double wristPositionAngle_deg = wristPositionAngle_rad * 180.0 / M_PI;
+
+	double targetPositionAngle_rad = std::atan2(position.y(), position.x());
+	double targetPositionAngle_deg = targetPositionAngle_rad * 180.0 / M_PI;
+
+	mJointAngles[0]=qBound(mJointLimitMin[0], mJointAngles[0] + (targetPositionAngle_deg-wristPositionAngle_deg), mJointLimitMax[0]);
 	recalculateLinkMatrices(0);
-	double currentDistance=(position - getFlangePosition()).length();
+
+	double currentDistance=(position - getWristPosition()).length();
 	while (improved)
 	{
 		improved=false;
 		for (uint32_t ikIteration=0; !improved && ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
-			for (int j=0; j < numOfJoints; ++j)
+			for (int j=1; j < 3; ++j)
 			{
 				const double oldAngle=mJointAngles[j];
 				mJointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
-				const double newDistance=(position - getFlangePosition()).length();
+				const double newDistance=(position - getWristPosition()).length();
 				if (currentDistance > newDistance)
 				{
 					currentDistance=newDistance;
@@ -165,8 +173,8 @@ void QRobot::solveInverseKinematics(const QVector3D &position)
 
 void QRobot::startAnimation()
 {
-	mStartPosition=getFlangePosition();
-	//mStartOrientation=getFlangeOrientation();
+	mStartPosition=getWristPosition();
+	//mStartOrientation=getWristOrientation();
 	mAnimationProgress=0.0;
 	mAnimationStep=1.0/(mTargetPosition-mStartPosition).length();
 	mAnimationTimer.start(10, this);
@@ -194,6 +202,16 @@ void QRobot::setLinkLength(int link_index, double mm)
 	{
 		mLinkLengths[link_index]=mm;
 	}
+}
+
+void QRobot::setFlangeOffset(double mm)
+{
+	mFlangeOffset=mm;
+}
+
+void QRobot::setToolOffset(double mm)
+{
+	mToolOffset=mm;
 }
 
 void QRobot::setJointAngle(int joint_index, double deg)
@@ -259,9 +277,9 @@ QPair<qreal, qreal> QRobot::getJointLimits(int joint_index) const
 	return {mJointLimitMin[joint_index], mJointLimitMax[joint_index]};
 }
 
-const QMatrix4x4 &QRobot::getLinkMatrix(int linkIndex) const
+const QMatrix4x4 &QRobot::getLinkMatrix(int link_index) const
 {
-	return mLinkMatrices[linkIndex];
+	return mLinkMatrices[link_index];
 }
 
 const QMatrix4x4 &QRobot::getTargetMatrix() const
@@ -269,16 +287,16 @@ const QMatrix4x4 &QRobot::getTargetMatrix() const
 	return mTargetMatrix;
 }
 
-QVector3D QRobot::getFlangePosition() const
+QVector3D QRobot::getWristPosition() const
 {
 	QVector3D positionVec(
-		mLinkMatrices[5](0, 3), // X
-		mLinkMatrices[5](1, 3), // Y
-		mLinkMatrices[5](2, 3)); // Z
+		mLinkMatrices[2](0, 3),
+		mLinkMatrices[2](1, 3),
+		mLinkMatrices[2](2, 3));
 	return positionVec;
 }
 
-QQuaternion QRobot::getFlangeOrientation() const
+QQuaternion QRobot::getWristOrientation() const
 {
 	QMatrix3x3 rotMat=mLinkMatrices[5].toGenericMatrix<3,3>();
 	return QQuaternion::fromRotationMatrix(rotMat);
