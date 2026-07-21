@@ -30,17 +30,15 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 	mJointLimitMin.resize(numOfJoints);
 	mJointLimitMax.resize(numOfJoints);
 	mLinkMatrices.resize(numOfJoints);
-
 	mJointLimitMin =
 	{
-		-180,
-		-90,
-		-120,
-		-180,
-		-90,
-		-180,
+		-180.0,
+		-90.0,
+		-120.0,
+		-180.0,
+		-90.0,
+		-180.0,
 	};
-
 	mJointLimitMax =
 	{
 		180.0,
@@ -50,7 +48,6 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 		90.0,
 		180.0,
 	};
-
 	mLinkLengths =
 	{
 		90.0,
@@ -60,7 +57,6 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 		0.0,
 		0.0,
 	};
-
 	mJointAngles =
 	{
 		0.0,
@@ -70,7 +66,6 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 		0.0,
 		0.0,
 	};
-
 	recalculateLinkMatrices(0);
 }
 
@@ -128,19 +123,21 @@ void QRobot::recalculateTargetMatrix()
 void QRobot::solveInverseKinematics(const QVector3D &position)
 {
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	bool improved=true;
-
 	QVector3D wristPosition=getWristPosition();
-
-	double wristPositionAngle_rad = std::atan2(wristPosition.y(), wristPosition.x());
-	double wristPositionAngle_deg = wristPositionAngle_rad * 180.0 / M_PI;
-
-	double targetPositionAngle_rad = std::atan2(position.y(), position.x());
-	double targetPositionAngle_deg = targetPositionAngle_rad * 180.0 / M_PI;
-
-	mJointAngles[0]=qBound(mJointLimitMin[0], mJointAngles[0] + (targetPositionAngle_deg-wristPositionAngle_deg), mJointLimitMax[0]);
+	bool improved=true;
+	double wristPositionAngleDeg = std::atan2(wristPosition.y(), wristPosition.x()) * 180.0 / M_PI;
+	double targetPositionAngleDeg = std::atan2(position.y(), position.x()) * 180.0 / M_PI;
+	double j0AngleNew = mJointAngles[0] + targetPositionAngleDeg - wristPositionAngleDeg;
+	while (j0AngleNew > 180.0)
+	{
+		j0AngleNew -= 360.0;
+	}
+	while (j0AngleNew < -180.0)
+	{
+		j0AngleNew += 360.0;
+	}
+	mJointAngles[0]=qBound(mJointLimitMin[0], j0AngleNew, mJointLimitMax[0]);
 	recalculateLinkMatrices(0);
-
 	double currentDistance=(position - getWristPosition()).length();
 	while (improved)
 	{
@@ -176,7 +173,15 @@ void QRobot::startAnimation()
 	mStartPosition=getWristPosition();
 	//mStartOrientation=getWristOrientation();
 	mAnimationProgress=0.0;
-	mAnimationStep=1.0/(mTargetPosition-mStartPosition).length();
+	float length=(mTargetPosition-mStartPosition).length();
+	if(length>0.0)
+	{
+		mAnimationStep=1.0/length;
+	}
+	else
+	{
+		mAnimationStep=1.0/16.0;
+	}
 	mAnimationTimer.start(10, this);
 }
 
