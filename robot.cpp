@@ -127,16 +127,7 @@ void QRobot::solveInverseKinematics(const QVector3D &position)
 	bool improved=true;
 	double wristPositionAngleDeg = std::atan2(wristPosition.y(), wristPosition.x()) * 180.0 / M_PI;
 	double targetPositionAngleDeg = std::atan2(position.y(), position.x()) * 180.0 / M_PI;
-	double j0AngleNew = mJointAngles[0] + targetPositionAngleDeg - wristPositionAngleDeg;
-	while (j0AngleNew > 180.0)
-	{
-		j0AngleNew -= 360.0;
-	}
-	while (j0AngleNew < -180.0)
-	{
-		j0AngleNew += 360.0;
-	}
-	mJointAngles[0]=qBound(mJointLimitMin[0], j0AngleNew, mJointLimitMax[0]);
+	mJointAngles[0]=qBound(mJointLimitMin[0], mJointAngles[0] + targetPositionAngleDeg - wristPositionAngleDeg, mJointLimitMax[0]);
 	recalculateLinkMatrices(0);
 	double currentDistance=(position - getWristPosition()).length();
 	while (improved)
