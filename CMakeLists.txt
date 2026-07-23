@@ -18,6 +18,8 @@ ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 	geometryengine.cpp
 	robot.hpp
 	robot.cpp
+	trajectoryplanner.hpp
+	trajectoryplanner.cpp
 	controlswidget.hpp controlswidget.cpp controlswidget.ui
 	robotviewwidget.hpp robotviewwidget.cpp robotviewwidget.ui
 	${CMAKE_PROJECT_NAME}.qrc)

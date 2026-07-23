@@ -19,13 +19,15 @@ class QRobot : public QObject
 	QMatrix4x4 mTargetMatrix;
 	QVector3D mStartPosition;
 	QVector3D mTargetPosition;
+	QQuaternion mStartOrientation;
 	QQuaternion mTargetOrientation;
 	uint32_t ikIterationsPerCycle=32;
 	double mFlangeOffset=80.0;
 	double mToolOffset=0.0;
 	double mAnimationProgress=0.0;
 	double mAnimationStep=0.0;
-	bool ikSolved=true;
+	bool mIkPositionSolved=true;
+	bool mIkOrientationSolved=true;
 	void recalculateLinkMatrices(uint32_t from);
 	void recalculateTargetMatrix();
 	void timerEvent(QTimerEvent *event) override;
@@ -51,9 +53,10 @@ public:
 
 public slots:
 	void setJointAngle(int joint_index, double deg);
-	void setTargetPosition(const QVector3D &target_position);
-	void setTargetOrientation(const QQuaternion &target_orientation);
-	void solveInverseKinematics(const QVector3D &position);
+	void setTargetPosition(float x, float y, float z);
+	void setTargetOrientation(float pitch, float yaw, float roll);
+	void solveIkForPosition(const QVector3D &position);
+	void solveIkForOrientation(const QQuaternion &orientation);
 	void startAnimation();
 
 signals:

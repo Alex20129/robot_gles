@@ -15,6 +15,13 @@ class ControlsWidget : public QWidget
 	Q_OBJECT
 	Ui::ControlsWidget *ui;
 	QRobot *mRobot=nullptr;
+	QVector3D mTarget;
+	float mTargetPositionX=0.0;
+	float mTargetPositionY=0.0;
+	float mTargetPositionZ=0.0;
+	float mTargetOrientationPitch=0.0;
+	float mTargetOrientationYaw=0.0;
+	float mTargetOrientationRoll=0.0;
 	bool mMuteControls=false;
 	static constexpr double controlsMultiplicator=8.0;
 
@@ -30,6 +37,10 @@ private slots:
 	void on_lineEdit_target_x_textChanged(const QString &arg1);
 	void on_lineEdit_target_y_textChanged(const QString &arg1);
 	void on_lineEdit_target_z_textChanged(const QString &arg1);
+	void on_lineEdit_target_pitch_textEdited(const QString &arg1);
+	void on_lineEdit_target_yaw_textEdited(const QString &arg1);
+	void on_lineEdit_target_roll_textEdited(const QString &arg1);
+
 public:
 	explicit ControlsWidget(QWidget *parent = nullptr);
 	~ControlsWidget();
@@ -37,7 +48,8 @@ public:
 
 signals:
 	void jointControlValueChanged(int jointIndex, double deg);
-	void needToSetTargetPosition(QVector3D target_position);
+	void needToSetTargetPosition(float x, float y, float z);
+	void needToSetTargetOrientation(float pitch, float yaw, float roll);
 	void needToStartAnimation();
 };
 

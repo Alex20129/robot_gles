@@ -3,6 +3,7 @@
 #include <QSurfaceFormat>
 
 #include "robot.hpp"
+//#include "trajectoryplanner.hpp"
 #include "robotviewwidget.hpp"
 #include "controlswidget.hpp"
 
@@ -18,6 +19,8 @@ int main(int argc, char *argv[])
 	app.setApplicationName("robot");
 
 	QRobot *robot=new QRobot;
+	//QTrajectoryPlanner *trajectoryPlanner=new QTrajectoryPlanner(robot);
+
 	RobotViewWidget *rvWidget=new RobotViewWidget;
 	rvWidget->resize(1024, 768);
 	rvWidget->attachRobot(robot);

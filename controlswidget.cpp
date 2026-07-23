@@ -32,6 +32,7 @@ void ControlsWidget::attachRobot(QRobot *robot)
 	mRobot=robot;
 	QObject::connect(this, &ControlsWidget::jointControlValueChanged, mRobot, &QRobot::setJointAngle);
 	QObject::connect(this, &ControlsWidget::needToSetTargetPosition, mRobot, &QRobot::setTargetPosition);
+	QObject::connect(this, &ControlsWidget::needToSetTargetOrientation, mRobot, &QRobot::setTargetOrientation);
 	QObject::connect(this, &ControlsWidget::needToStartAnimation, mRobot, &QRobot::startAnimation);
 	QObject::connect(mRobot, &QRobot::configurationChanged, this, &ControlsWidget::onRobotConfigurationChanged);
 	ui->horizontalScrollBar_J0->setMinimum(mRobot->getJointLimits(0).first*controlsMultiplicator);
@@ -153,10 +154,6 @@ void ControlsWidget::on_pushButton_start_animation_clicked()
 	{
 		return;
 	}
-	emit needToSetTargetPosition(QVector3D(
-		ui->lineEdit_target_x->text().toFloat(),
-		ui->lineEdit_target_y->text().toFloat(),
-		ui->lineEdit_target_z->text().toFloat()));
 	emit needToStartAnimation();
 }
 
@@ -166,10 +163,8 @@ void ControlsWidget::on_lineEdit_target_x_textChanged(const QString &arg1)
 	{
 		return;
 	}
-	emit needToSetTargetPosition(QVector3D(
-		ui->lineEdit_target_x->text().toFloat(),
-		ui->lineEdit_target_y->text().toFloat(),
-		ui->lineEdit_target_z->text().toFloat()));
+	mTargetPositionX=arg1.toFloat();
+	emit needToSetTargetPosition(mTargetPositionX, mTargetPositionY, mTargetPositionZ);
 }
 
 void ControlsWidget::on_lineEdit_target_y_textChanged(const QString &arg1)
@@ -178,10 +173,8 @@ void ControlsWidget::on_lineEdit_target_y_textChanged(const QString &arg1)
 	{
 		return;
 	}
-	emit needToSetTargetPosition(QVector3D(
-		ui->lineEdit_target_x->text().toFloat(),
-		ui->lineEdit_target_y->text().toFloat(),
-		ui->lineEdit_target_z->text().toFloat()));
+	mTargetPositionY=arg1.toFloat();
+	emit needToSetTargetPosition(mTargetPositionX, mTargetPositionY, mTargetPositionZ);
 }
 
 void ControlsWidget::on_lineEdit_target_z_textChanged(const QString &arg1)
@@ -190,8 +183,36 @@ void ControlsWidget::on_lineEdit_target_z_textChanged(const QString &arg1)
 	{
 		return;
 	}
-	emit needToSetTargetPosition(QVector3D(
-		ui->lineEdit_target_x->text().toFloat(),
-		ui->lineEdit_target_y->text().toFloat(),
-		ui->lineEdit_target_z->text().toFloat()));
+	mTargetPositionZ=arg1.toFloat();
+	emit needToSetTargetPosition(mTargetPositionX, mTargetPositionY, mTargetPositionZ);
+}
+
+void ControlsWidget::on_lineEdit_target_pitch_textEdited(const QString &arg1)
+{
+	if(mMuteControls)
+	{
+		return;
+	}
+	mTargetOrientationPitch=arg1.toFloat();
+	emit needToSetTargetOrientation(mTargetOrientationPitch, mTargetOrientationYaw, mTargetOrientationRoll);
+}
+
+void ControlsWidget::on_lineEdit_target_yaw_textEdited(const QString &arg1)
+{
+	if(mMuteControls)
+	{
+		return;
+	}
+	mTargetOrientationYaw=arg1.toFloat();
+	emit needToSetTargetOrientation(mTargetOrientationPitch, mTargetOrientationYaw, mTargetOrientationRoll);
+}
+
+void ControlsWidget::on_lineEdit_target_roll_textEdited(const QString &arg1)
+{
+	if(mMuteControls)
+	{
+		return;
+	}
+	mTargetOrientationRoll=arg1.toFloat();
+	emit needToSetTargetOrientation(mTargetOrientationPitch, mTargetOrientationYaw, mTargetOrientationRoll);
 }
