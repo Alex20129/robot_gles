@@ -135,7 +135,6 @@ void QRobot::solveIkForPosition(const QVector3D &position)
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
 	bool improved=true;
 	double currentDiff=vectorDiffSq(position, getWristPosition());
-	static uint32_t ikIterations=0;
 	while (improved)
 	{
 		improved=false;
@@ -159,10 +158,8 @@ void QRobot::solveIkForPosition(const QVector3D &position)
 					ikStep[j] *= ikSlowdownCoefficient;
 				}
 			}
-			ikIterations++;
 		}
 	}
-	qDebug()<<"ikIterations:"<<ikIterations;
 	emit configurationChanged();
 	mIkPositionSolved=true;
 }
