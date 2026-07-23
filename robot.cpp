@@ -135,6 +135,7 @@ void QRobot::solveIkForPosition(const QVector3D &position)
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
 	bool improved=true;
 	double currentDiff=vectorDiffSq(position, getWristPosition());
+	static uint32_t ikIterations=0;
 	while (improved)
 	{
 		improved=false;
@@ -158,8 +159,10 @@ void QRobot::solveIkForPosition(const QVector3D &position)
 					ikStep[j] *= ikSlowdownCoefficient;
 				}
 			}
+			ikIterations++;
 		}
 	}
+	qDebug()<<"ikIterations:"<<ikIterations;
 	emit configurationChanged();
 	mIkPositionSolved=true;
 }
@@ -225,7 +228,7 @@ void QRobot::startAnimation()
 	mAnimationTimer.start(10, this);
 }
 
-void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
+void QRobot::setJointLimits(uint32_t joint_index, double min_deg, double max_deg)
 {
 	mAnimationTimer.stop();
 	if (joint_index < 0 || joint_index >= numOfJoints)
@@ -236,7 +239,7 @@ void QRobot::setJointLimits(int joint_index, double min_deg, double max_deg)
 	mJointLimitMax[joint_index]=qMax(min_deg, max_deg);
 }
 
-void QRobot::setLinkLength(int link_index, double mm)
+void QRobot::setLinkLength(uint32_t link_index, double mm)
 {
 	mAnimationTimer.stop();
 	if (link_index < 0 || link_index >= numOfJoints)
@@ -259,7 +262,7 @@ void QRobot::setToolOffset(double mm)
 	mToolOffset=mm;
 }
 
-void QRobot::setJointAngle(int joint_index, double deg)
+void QRobot::setJointAngle(uint32_t joint_index, double deg)
 {
 	mAnimationTimer.stop();
 	if (joint_index < 0 || joint_index >= numOfJoints)
@@ -305,7 +308,7 @@ void QRobot::setTargetOrientation(float pitch, float yaw, float roll)
 	}
 }
 
-double QRobot::getJointAngle(int joint_index) const
+double QRobot::getJointAngle(uint32_t joint_index) const
 {
 	if (joint_index < 0 || joint_index >= numOfJoints)
 	{
@@ -314,7 +317,7 @@ double QRobot::getJointAngle(int joint_index) const
 	return (mJointAngles[joint_index]);
 }
 
-QPair<qreal, qreal> QRobot::getJointLimits(int joint_index) const
+QPair<qreal, qreal> QRobot::getJointLimits(uint32_t joint_index) const
 {
 	if (joint_index < 0 || joint_index >= numOfJoints)
 	{

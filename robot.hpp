@@ -21,7 +21,6 @@ class QRobot : public QObject
 	QVector3D mTargetPosition;
 	QQuaternion mStartOrientation;
 	QQuaternion mTargetOrientation;
-	uint32_t ikIterationsPerCycle=32;
 	double mFlangeOffset=80.0;
 	double mToolOffset=0.0;
 	double mAnimationProgress=0.0;
@@ -35,24 +34,25 @@ class QRobot : public QObject
 public:
 	static constexpr double ikInitialStep=0.5; // deg
 	static constexpr double ikSlowdownCoefficient=-0.75;
-	static constexpr int numOfJoints=6;
+	static constexpr uint32_t ikIterationsPerCycle=16;
+	static constexpr uint32_t numOfJoints=6;
 	QRobot(QObject *parent=nullptr);
 
-	double getJointAngle(int joint_index) const;
-	QPair<qreal, qreal> getJointLimits(int joint_index) const;
+	double getJointAngle(uint32_t joint_index) const;
+	QPair<qreal, qreal> getJointLimits(uint32_t joint_index) const;
 	const QMatrix4x4 &getLinkMatrix(int link_index) const;
 	const QMatrix4x4 &getTargetMatrix() const;
 	QVector3D getWristPosition() const;
 	QQuaternion getWristOrientation() const;
 	const QVector3D &getTargetPosition() const;
 	const QQuaternion &getTargetOrientation() const;
-	void setJointLimits(int joint_index, double min_deg, double max_deg);
-	void setLinkLength(int link_index, double mm);
+	void setJointLimits(uint32_t joint_index, double min_deg, double max_deg);
+	void setLinkLength(uint32_t link_index, double mm);
 	void setFlangeOffset(double mm);
 	void setToolOffset(double mm);
 
 public slots:
-	void setJointAngle(int joint_index, double deg);
+	void setJointAngle(uint32_t joint_index, double deg);
 	void setTargetPosition(float x, float y, float z);
 	void setTargetOrientation(float pitch, float yaw, float roll);
 	void solveIkForPosition(const QVector3D &position);
