@@ -57,9 +57,15 @@ void ControlsWidget::onRobotConfigurationChanged()
 	double jointAngle;
 
 	QVector3D wristPosition=mRobot->getWristPosition();
-	ui->lineEdit_current_x->setText(QString::number(wristPosition.x(), 'f', 3));
-	ui->lineEdit_current_y->setText(QString::number(wristPosition.y(), 'f', 3));
-	ui->lineEdit_current_z->setText(QString::number(wristPosition.z(), 'f', 3));
+	ui->lineEdit_actual_x->setText(QString::number(wristPosition.x(), 'f', 3));
+	ui->lineEdit_actual_y->setText(QString::number(wristPosition.y(), 'f', 3));
+	ui->lineEdit_actual_z->setText(QString::number(wristPosition.z(), 'f', 3));
+
+	float actualPitch, actualYaw, actualRoll;
+	mRobot->getWristOrientation().getEulerAngles(&actualPitch, &actualYaw, &actualRoll);
+	ui->lineEdit_actual_pitch->setText(QString::number(actualPitch, 'f', 3));
+	ui->lineEdit_actual_yaw->setText(QString::number(actualYaw, 'f', 3));
+	ui->lineEdit_actual_roll->setText(QString::number(actualRoll, 'f', 3));
 
 	jointAngle=mRobot->getJointAngle(0);
 	ui->lineEdit_j0->setText(QString::number(jointAngle, 'f', 3));
