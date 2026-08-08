@@ -40,7 +40,7 @@ public:
 
 	double getJointAngle(uint32_t joint_index) const;
 	QPair<qreal, qreal> getJointLimits(uint32_t joint_index) const;
-	const QMatrix4x4 &getLinkMatrix(int link_index) const;
+	const QMatrix4x4 &getLinkMatrix(uint32_t link_index) const;
 	const QMatrix4x4 &getTargetMatrix() const;
 	QVector3D getWristPosition() const;
 	QQuaternion getWristOrientation() const;

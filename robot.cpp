@@ -16,7 +16,7 @@ void QRobot::timerEvent(QTimerEvent *event)
 			animFinished=true;
 		}
 		solveIkForPosition(mStartPosition*(1.0-mAnimationProgress) + mTargetPosition*mAnimationProgress);
-		solveIkForOrientation(mStartOrientation*(1.0-mAnimationProgress) + mTargetOrientation*mAnimationProgress);
+		solveIkForOrientation(QQuaternion::slerp(mStartOrientation, mTargetOrientation, mAnimationProgress));
 	}
 	if (animFinished)
 	{
@@ -237,7 +237,7 @@ void QRobot::startAnimation()
 void QRobot::setJointLimits(uint32_t joint_index, double min_deg, double max_deg)
 {
 	mAnimationTimer.stop();
-	if (joint_index < 0 || joint_index >= numOfJoints)
+	if (joint_index >= numOfJoints)
 	{
 		return;
 	}
@@ -248,7 +248,7 @@ void QRobot::setJointLimits(uint32_t joint_index, double min_deg, double max_deg
 void QRobot::setLinkLength(uint32_t link_index, double mm)
 {
 	mAnimationTimer.stop();
-	if (link_index < 0 || link_index >= numOfJoints)
+	if (link_index >= numOfJoints)
 	{
 		return;
 	}
@@ -271,7 +271,7 @@ void QRobot::setToolOffset(double mm)
 void QRobot::setJointAngle(uint32_t joint_index, double deg)
 {
 	mAnimationTimer.stop();
-	if (joint_index < 0 || joint_index >= numOfJoints)
+	if (joint_index >= numOfJoints)
 	{
 		return;
 	}
@@ -316,24 +316,28 @@ void QRobot::setTargetOrientation(float pitch, float yaw, float roll)
 
 double QRobot::getJointAngle(uint32_t joint_index) const
 {
-	if (joint_index < 0 || joint_index >= numOfJoints)
+	if (joint_index >= numOfJoints)
 	{
-		return (0.0);
+		joint_index=0;
 	}
 	return (mJointAngles[joint_index]);
 }
 
 QPair<qreal, qreal> QRobot::getJointLimits(uint32_t joint_index) const
 {
-	if (joint_index < 0 || joint_index >= numOfJoints)
+	if (joint_index >= numOfJoints)
 	{
-		return{0.0, 0.0};
+		joint_index=0;
 	}
-	return{mJointLimitMin[joint_index], mJointLimitMax[joint_index]};
+	return {mJointLimitMin[joint_index], mJointLimitMax[joint_index]};
 }
 
-const QMatrix4x4 &QRobot::getLinkMatrix(int link_index) const
+const QMatrix4x4 &QRobot::getLinkMatrix(uint32_t link_index) const
 {
+	if (link_index >= numOfJoints)
+	{
+		link_index=0;
+	}
 	return (mLinkMatrices[link_index]);
 }
 
