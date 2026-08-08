@@ -55,8 +55,8 @@ public slots:
 	void setJointAngle(uint32_t joint_index, double deg);
 	void setTargetPosition(float x, float y, float z);
 	void setTargetOrientation(float pitch, float yaw, float roll);
-	void solveIkForPosition(const QVector3D &position);
-	void solveIkForOrientation(const QQuaternion &orientation);
+	double solveIkForPosition(const QVector3D &position);
+	double solveIkForOrientation(const QQuaternion &orientation);
 	void startAnimation();
 
 signals:

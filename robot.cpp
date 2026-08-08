@@ -8,6 +8,8 @@ void QRobot::timerEvent(QTimerEvent *event)
 	bool animFinished=false;
 	if (mIkPositionSolved && mIkOrientationSolved)
 	{
+		mIkPositionSolved=false;
+		mIkOrientationSolved=false;
 		mAnimationProgress+=mAnimationStep;
 		if (mAnimationProgress>=1.0)
 		{
@@ -15,8 +17,12 @@ void QRobot::timerEvent(QTimerEvent *event)
 			mAnimationTimer.stop();
 			animFinished=true;
 		}
-		solveIkForPosition(mStartPosition*(1.0-mAnimationProgress) + mTargetPosition*mAnimationProgress);
-		solveIkForOrientation(QQuaternion::slerp(mStartOrientation, mTargetOrientation, mAnimationProgress));
+		// TODO: handle unsolved position cases
+		double PositionError=solveIkForPosition(mStartPosition*(1.0-mAnimationProgress) + mTargetPosition*mAnimationProgress);
+		mIkPositionSolved=true;
+		// TODO: handle unsolved orientation cases
+		double OrientationError=solveIkForOrientation(QQuaternion::slerp(mStartOrientation, mTargetOrientation, mAnimationProgress));
+		mIkOrientationSolved=true;
 	}
 	if (animFinished)
 	{
@@ -128,15 +134,14 @@ static double vectorDiffSq(const QVector3D &va, const QVector3D &vb)
 	return (diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-void QRobot::solveIkForPosition(const QVector3D &position)
+double QRobot::solveIkForPosition(const QVector3D &position)
 {
-	mIkPositionSolved=false;
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	double currentDiff=vectorDiffSq(position, getWristPosition());
-	bool improved=true;
-	while (improved)
+	double DiffSq=vectorDiffSq(position, getWristPosition());
+	bool Improved=true;
+	while (Improved)
 	{
-		improved=false;
+		Improved=false;
 		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
 			for (int j=0; j < 3; ++j)
@@ -145,14 +150,14 @@ void QRobot::solveIkForPosition(const QVector3D &position)
 				mJointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
 				const double newDiff=vectorDiffSq(position, getWristPosition());
-				if (currentDiff > newDiff)
+				if (DiffSq > newDiff)
 				{
-					currentDiff=newDiff;
-					improved=true;
+					DiffSq=newDiff;
+					Improved=true;
 				}
 				else
 				{
-					mJointAngles[j] = oldAngle;
+					mJointAngles[j]=oldAngle;
 					recalculateLinkMatrices(j);
 					ikStep[j] *= ikSlowdownCoefficient;
 				}
@@ -160,7 +165,7 @@ void QRobot::solveIkForPosition(const QVector3D &position)
 		}
 	}
 	emit configurationChanged();
-	mIkPositionSolved=true;
+	return (DiffSq);
 }
 
 static double quaternionDiffSq(const QQuaternion &qa, const QQuaternion &qb)
@@ -181,16 +186,15 @@ static double quaternionDiffSq(const QQuaternion &qa, const QQuaternion &qb)
 	return (diffS*diffS + diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-void QRobot::solveIkForOrientation(const QQuaternion &orientation)
+double QRobot::solveIkForOrientation(const QQuaternion &orientation)
 {
-	mIkOrientationSolved=false;
 	QQuaternion NormalizedOrientation=orientation.normalized();
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	double currentDiff=quaternionDiffSq(NormalizedOrientation, getWristOrientation());
-	bool improved=true;
-	while (improved)
+	double DiffSq=quaternionDiffSq(NormalizedOrientation, getWristOrientation());
+	bool Improved=true;
+	while (Improved)
 	{
-		improved=false;
+		Improved=false;
 		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
 			for (int j=3; j < 6; ++j)
@@ -199,14 +203,14 @@ void QRobot::solveIkForOrientation(const QQuaternion &orientation)
 				mJointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
 				const double newDiff=quaternionDiffSq(NormalizedOrientation, getWristOrientation());
-				if (currentDiff > newDiff)
+				if (DiffSq > newDiff)
 				{
-					currentDiff=newDiff;
-					improved=true;
+					DiffSq=newDiff;
+					Improved=true;
 				}
 				else
 				{
-					mJointAngles[j] = oldAngle;
+					mJointAngles[j]=oldAngle;
 					recalculateLinkMatrices(j);
 					ikStep[j] *= ikSlowdownCoefficient;
 				}
@@ -214,7 +218,7 @@ void QRobot::solveIkForOrientation(const QQuaternion &orientation)
 		}
 	}
 	emit configurationChanged();
-	mIkOrientationSolved=true;
+	return (DiffSq);
 }
 
 void QRobot::startAnimation()
