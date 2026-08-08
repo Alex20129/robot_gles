@@ -25,8 +25,8 @@ class QRobot : public QObject
 	double mToolOffset=0.0;
 	double mAnimationProgress=0.0;
 	double mAnimationStep=0.0;
-	bool mIkPositionSolved=true;
-	bool mIkOrientationSolved=true;
+	volatile bool mIkPositionSolved=true;
+	volatile bool mIkOrientationSolved=true;
 	void recalculateLinkMatrices(uint32_t from);
 	void recalculateTargetMatrix();
 	void timerEvent(QTimerEvent *event) override;

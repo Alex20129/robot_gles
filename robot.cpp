@@ -15,8 +15,6 @@ void QRobot::timerEvent(QTimerEvent *event)
 			mAnimationTimer.stop();
 			animFinished=true;
 		}
-		mIkPositionSolved=false;
-		mIkOrientationSolved=false;
 		solveIkForPosition(mStartPosition*(1.0-mAnimationProgress) + mTargetPosition*mAnimationProgress);
 		solveIkForOrientation(mStartOrientation*(1.0-mAnimationProgress) + mTargetOrientation*mAnimationProgress);
 	}
@@ -132,13 +130,14 @@ static double vectorDiffSq(const QVector3D &va, const QVector3D &vb)
 
 void QRobot::solveIkForPosition(const QVector3D &position)
 {
+	mIkPositionSolved=false;
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	bool improved=true;
 	double currentDiff=vectorDiffSq(position, getWristPosition());
+	bool improved=true;
 	while (improved)
 	{
 		improved=false;
-		for (uint32_t ikIteration=0; !improved && ikIteration<ikIterationsPerCycle; ikIteration++)
+		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
 			for (int j=0; j < 3; ++j)
 			{
@@ -166,23 +165,33 @@ void QRobot::solveIkForPosition(const QVector3D &position)
 
 static double quaternionDiffSq(const QQuaternion &qa, const QQuaternion &qb)
 {
-	double diffS=qa.scalar()-qb.scalar();
-	double diffX=qa.x()-qb.x();
-	double diffY=qa.y()-qb.y();
-	double diffZ=qa.z()-qb.z();
+	QQuaternion b;
+	if (QQuaternion::dotProduct(qa, qb) < 0.0)
+	{
+		b = -qb;
+	}
+	else
+	{
+		b=qb;
+	}
+	double diffS=qa.scalar()-b.scalar();
+	double diffX=qa.x()-b.x();
+	double diffY=qa.y()-b.y();
+	double diffZ=qa.z()-b.z();
 	return (diffS*diffS + diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
 void QRobot::solveIkForOrientation(const QQuaternion &orientation)
 {
+	mIkOrientationSolved=false;
 	QQuaternion NormalizedOrientation=orientation.normalized();
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	bool improved=true;
 	double currentDiff=quaternionDiffSq(NormalizedOrientation, getWristOrientation());
+	bool improved=true;
 	while (improved)
 	{
 		improved=false;
-		for (uint32_t ikIteration=0; !improved && ikIteration<ikIterationsPerCycle; ikIteration++)
+		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
 			for (int j=3; j < 6; ++j)
 			{
