@@ -222,10 +222,10 @@ void QRobot::startAnimation()
 	mStartPosition=getWristPosition();
 	mStartOrientation=getWristOrientation();
 	mAnimationProgress=0.0;
-	float length=(mTargetPosition-mStartPosition).length();
-	if (length>0.0)
+	float distance=(mTargetPosition-mStartPosition).length();
+	if (distance>0.0)
 	{
-		mAnimationStep=1.0/length;
+		mAnimationStep=1.0/distance;
 	}
 	else
 	{
