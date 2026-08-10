@@ -171,13 +171,13 @@ double QRobot::solveIkForPosition(const QVector3D &position)
 static double quaternionDiffSq(const QQuaternion &qa, const QQuaternion &qb)
 {
 	QQuaternion b;
-	if (QQuaternion::dotProduct(qa, qb) < 0.0)
+	if (QQuaternion::dotProduct(qa, qb) > 0.0)
 	{
-		b = -qb;
+		b=qb;
 	}
 	else
 	{
-		b=qb;
+		b=-qb;
 	}
 	double diffS=qa.scalar()-b.scalar();
 	double diffX=qa.x()-b.x();
