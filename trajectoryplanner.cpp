@@ -5,9 +5,20 @@ QTrajectoryPlanner::QTrajectoryPlanner(QRobot *robot, QObject *parent) : QObject
 	mRobot=robot;
 }
 
+void QTrajectoryPlanner::clear()
+{
+	mSegments.clear();
+	mPoints.clear();
+}
+
+void QTrajectoryPlanner::addSegment(const TrajectorySegment &segment)
+{
+	mSegments.push_back(segment);
+}
+
 bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 {
-	return true;
+	return (true);
 }
 
 void QTrajectoryPlanner::setVelocity(double mmps)
@@ -18,4 +29,9 @@ void QTrajectoryPlanner::setVelocity(double mmps)
 void QTrajectoryPlanner::setStep(double mm)
 {
 	mStep=mm;
+}
+
+const QVector<TrajectoryPoint> &QTrajectoryPlanner::getPoints() const
+{
+	return (mPoints);
 }
