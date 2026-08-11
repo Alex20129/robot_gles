@@ -1,3 +1,6 @@
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 #include "trajectoryplanner.hpp"
 
 QTrajectoryPlanner::QTrajectoryPlanner(QRobot *robot, QObject *parent) : QObject(parent)

@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QVector3D>
-#include <QQuaternion>
 #include <QVector>
 #include <QString>
 #include "robot.hpp"
