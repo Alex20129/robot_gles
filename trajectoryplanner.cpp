@@ -2,7 +2,7 @@
 
 QTrajectoryPlanner::QTrajectoryPlanner(QRobot *robot, QObject *parent) : QObject(parent)
 {
-
+	mRobot=robot;
 }
 
 bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)

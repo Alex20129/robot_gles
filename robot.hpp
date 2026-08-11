@@ -32,7 +32,7 @@ class QRobot : public QObject
 	void timerEvent(QTimerEvent *event) override;
 
 public:
-	static constexpr double ikInitialStep=0.5; // deg
+	static constexpr double ikInitialStep=1.0; // deg
 	static constexpr double ikSlowdownCoefficient=-0.75;
 	static constexpr uint32_t ikIterationsPerCycle=16;
 	static constexpr uint32_t numOfJoints=6;
