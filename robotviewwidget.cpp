@@ -19,18 +19,18 @@ RobotViewWidget::~RobotViewWidget()
 
 void RobotViewWidget::attachRobot(QRobot *robot)
 {
+	if (nullptr!=mRobot)
+	{
+		QObject::disconnect(mRobot, nullptr, this, nullptr);
+		QObject::disconnect(this, nullptr, mRobot, nullptr);
+	}
+	mRobot=robot;
 	if (nullptr==robot)
 	{
 		return;
 	}
-	if (nullptr!=this->robot)
-	{
-		QObject::disconnect(this->robot, nullptr, this, nullptr);
-		QObject::disconnect(this, nullptr, this->robot, nullptr);
-	}
-	this->robot=robot;
-	QObject::connect(robot, &QRobot::configurationChanged, this, &RobotViewWidget::onRobotConfigurationChanged);
-	QObject::connect(robot, &QRobot::targetPositionChanged, this, &RobotViewWidget::onRobotTargetPositionChanged);
+	QObject::connect(mRobot, &QRobot::configurationChanged, this, &RobotViewWidget::onRobotConfigurationChanged);
+	QObject::connect(mRobot, &QRobot::targetPositionChanged, this, &RobotViewWidget::onRobotTargetPositionChanged);
 	onRobotConfigurationChanged();
 }
 
@@ -164,7 +164,7 @@ void RobotViewWidget::resizeGL(int w, int h)
 
 void RobotViewWidget::paintGL()
 {
-	if (!robot)
+	if (nullptr==mRobot)
 	{
 		return;
 	}
@@ -175,15 +175,15 @@ void RobotViewWidget::paintGL()
 	view.rotate(mCameraRotationQ);
 
 	size_t i;
-	for (i = 0; i < robot->numOfJoints; ++i)
+	for (i = 0; i < mRobot->numOfJoints; ++i)
 	{
-		QMatrix4x4 linkMatrix = view * robot->getLinkMatrix(i);
+		QMatrix4x4 linkMatrix = view * mRobot->getLinkMatrix(i);
 		QMatrix4x4 mvp = projectionMatrix * linkMatrix;
 		program.setUniformValue("mvp_matrix", mvp);
 		mModelGeometry.at(i)->drawGeometry(&program, linkMatrix);
 	}
 
-	QMatrix4x4 targetMatrix = view * robot->getTargetMatrix();
+	QMatrix4x4 targetMatrix = view * mRobot->getTargetMatrix();
 	QMatrix4x4 mvp = projectionMatrix * targetMatrix;
 	program.setUniformValue("mvp_matrix", mvp);
 	mModelGeometry.at(i)->drawGeometry(&program, targetMatrix);

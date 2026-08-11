@@ -23,19 +23,19 @@ class QTrajectoryPlanner : public QObject
 	QBasicTimer mAnimationTimer;
 	QVector<TrajectorySegment> mSegments;
 	QVector<QRobot::Pose> mPoses;
-	QRobot *mRobot;
-	double mVelocity=10.0; // mm/s
-	double mStep=0.25; // mm
+	QRobot *mRobot=nullptr;
+	double mStepSize=0.25; // mm
 	uint32_t mAnimationProgress=0;
 	void timerEvent(QTimerEvent *event) override;
+	void rebuildPoses();
 
 public:
-	QTrajectoryPlanner(QRobot *robot, QObject *parent = nullptr);
+	QTrajectoryPlanner(QObject *parent = nullptr);
+	void attachRobot(QRobot *robot);
 	void clear();
-	void addSegment(const TrajectorySegment &segment);
+	void addPathSegment(const TrajectorySegment &segment);
 	bool loadFromJsonFile(const QString &file);
-	void setVelocity(double mmps);
-	void setStep(double mm);
+	void setStepSize(double mm);
 	const QVector<QRobot::Pose> &getPoses() const;
 
 public slots:

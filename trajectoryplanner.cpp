@@ -20,10 +20,24 @@ void QTrajectoryPlanner::timerEvent(QTimerEvent *event)
 	}
 }
 
-QTrajectoryPlanner::QTrajectoryPlanner(QRobot *robot, QObject *parent) : QObject(parent)
+QTrajectoryPlanner::QTrajectoryPlanner(QObject *parent) : QObject(parent)
 {
+}
+
+void QTrajectoryPlanner::attachRobot(QRobot *robot)
+{
+	if (nullptr!=mRobot)
+	{
+		QObject::disconnect(mRobot, nullptr, this, nullptr);
+		QObject::disconnect(this, nullptr, mRobot, nullptr);
+	}
 	mRobot=robot;
-	QObject::connect(this, &QTrajectoryPlanner::needToSetPose, robot, &QRobot::setPose);
+	if (nullptr==robot)
+	{
+		return;
+	}
+	QObject::connect(this, &QTrajectoryPlanner::needToSetPose, mRobot, &QRobot::setPose);
+	rebuildPoses();
 }
 
 void QTrajectoryPlanner::clear()
@@ -32,39 +46,53 @@ void QTrajectoryPlanner::clear()
 	mPoses.clear();
 }
 
-void QTrajectoryPlanner::addSegment(const TrajectorySegment &segment)
+void QTrajectoryPlanner::rebuildPoses()
 {
-	mSegments.push_back(segment);
-	switch (segment.type)
+	mPoses.clear();
+	if(nullptr==mRobot)
 	{
-		default:
-		case TrajectorySegment::SegmentType::Line:
+		return;
+	}
+	for(const TrajectorySegment &segment : mSegments)
+	{
+		switch (segment.type)
 		{
-			QQuaternion quOrientationA=QQuaternion::fromEulerAngles(segment.orientationA);
-			QQuaternion quOrientationB=QQuaternion::fromEulerAngles(segment.orientationB);
-			// TODO: split the segment properly
-			for(uint i=0; i<128; i++)
+			default:
+			case TrajectorySegment::SegmentType::Line:
 			{
-				double t=i/128.0;
-				// TODO: handle unsolved position cases
-				double PositionError=mRobot->solveIkForPosition(segment.positionA*(1.0-t) + segment.positionB*t);
-				// TODO: handle unsolved orientation cases
-				double OrientationError=mRobot->solveIkForOrientation(QQuaternion::slerp(quOrientationA, quOrientationB, t));
-				mPoses.push_back(mRobot->getPose());
+				QQuaternion quOrientationA=QQuaternion::fromEulerAngles(segment.orientationA);
+				QQuaternion quOrientationB=QQuaternion::fromEulerAngles(segment.orientationB);
+				double distance=(segment.positionA-segment.positionB).length();
+				double steps=distance/mStepSize;
+				steps=steps>0.0?steps:1.0;
+				for(uint i=0; i<steps; i++)
+				{
+					double t=i/steps;
+					// TODO: handle unsolved position cases
+					double PositionError=mRobot->solveIkForPosition(segment.positionA*(1.0-t) + segment.positionB*t);
+					// TODO: handle unsolved orientation cases
+					double OrientationError=mRobot->solveIkForOrientation(QQuaternion::slerp(quOrientationA, quOrientationB, t));
+					mPoses.push_back(mRobot->getPose());
+				}
+				break;
 			}
-			break;
-		}
-		case TrajectorySegment::SegmentType::Arc:
-		{
-			// TODO: Arc
-			break;
-		}
-		case TrajectorySegment::SegmentType::Spline:
-		{
-			// TODO: Spline
-			break;
+			case TrajectorySegment::SegmentType::Arc:
+			{
+				// TODO: Arc
+				break;
+			}
+			case TrajectorySegment::SegmentType::Spline:
+			{
+				// TODO: Spline
+				break;
+			}
 		}
 	}
+}
+
+void QTrajectoryPlanner::addPathSegment(const TrajectorySegment &segment)
+{
+	mSegments.push_back(segment);
 }
 
 bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
@@ -141,20 +169,15 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 			segment.orientationC.setY(segmentJsonObject.value("c").toArray().at(4).toDouble());
 			segment.orientationC.setZ(segmentJsonObject.value("c").toArray().at(5).toDouble());
 		}
-		addSegment(segment);
+		addPathSegment(segment);
 	}
-
+	rebuildPoses();
 	return (true);
 }
 
-void QTrajectoryPlanner::setVelocity(double mmps)
+void QTrajectoryPlanner::setStepSize(double mm)
 {
-	mVelocity=mmps;
-}
-
-void QTrajectoryPlanner::setStep(double mm)
-{
-	mStep=mm;
+	mStepSize=mm;
 }
 
 const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
@@ -165,5 +188,5 @@ const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
 void QTrajectoryPlanner::startAnimation()
 {
 	mAnimationProgress=0;
-	mAnimationTimer.start(10, this);
+	mAnimationTimer.start(5, this);
 }

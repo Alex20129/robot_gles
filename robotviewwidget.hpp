@@ -17,7 +17,7 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 	Q_OBJECT
 	QOpenGLShaderProgram program;
 	QVector <GeometryEngine *> mModelGeometry;
-	QRobot *robot=nullptr;
+	QRobot *mRobot=nullptr;
 	QMatrix4x4 projectionMatrix;
 	QVector2D mousePressPosition;
 	QVector3D rotationAxis;
