@@ -7,18 +7,13 @@
 #include <QString>
 #include "robot.hpp"
 
-struct TrajectoryPoint
-{
-	uint64_t timestamp; // ms
-	qreal joints[6]; // deg
-};
-
 struct TrajectorySegment
 {
-	enum Type { Line, Arc, Spline };
-	Type type;
-	QVector3D a, b, c;
-	QVector3D control;
+	enum SegmentType { Line, Arc, Spline };
+	SegmentType type=SegmentType::Line;
+	qreal speed=0.0;
+	QVector3D positionA, positionB, positionC;
+	QVector3D orientationA, orientationB, orientationC;
 };
 
 class QTrajectoryPlanner : public QObject
@@ -27,11 +22,11 @@ class QTrajectoryPlanner : public QObject
 
 	QRobot *mRobot;
 	QVector<TrajectorySegment> mSegments;
-	QVector<TrajectoryPoint> mPoints;
+	QVector<QRobot::Pose> mPoses;
 	double mVelocity=10.0; // mm/s
 	double mStep=0.25; // mm
 
-	void generatePoints();
+	void generatePoses(const TrajectorySegment &segment);
 
 public:
 	QTrajectoryPlanner(QRobot *robot, QObject *parent = nullptr);
@@ -41,7 +36,7 @@ public:
 	bool loadFromJsonFile(const QString &file);
 	void setVelocity(double mmps);
 	void setStep(double mm);
-	const QVector<TrajectoryPoint> &getPoints() const;
+	const QVector<QRobot::Pose> &getPoses() const;
 
 signals:
 	void planningFinished(int totalPoints, int failedPoints);

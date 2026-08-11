@@ -2,8 +2,7 @@
 #include <QLabel>
 #include <QSurfaceFormat>
 
-#include "robot.hpp"
-//#include "trajectoryplanner.hpp"
+#include "trajectoryplanner.hpp"
 #include "robotviewwidget.hpp"
 #include "controlswidget.hpp"
 
@@ -19,7 +18,8 @@ int main(int argc, char *argv[])
 	app.setApplicationName("robot");
 
 	QRobot *robot=new QRobot;
-	//QTrajectoryPlanner *trajectoryPlanner=new QTrajectoryPlanner(robot);
+	QTrajectoryPlanner *trajectoryPlanner=new QTrajectoryPlanner(robot);
+	trajectoryPlanner->loadFromJsonFile("demo-path.json");
 
 	RobotViewWidget *rvWidget=new RobotViewWidget;
 	rvWidget->resize(1024, 768);
@@ -27,7 +27,6 @@ int main(int argc, char *argv[])
 
 	ControlsWidget *cWidget=new ControlsWidget;
 	cWidget->attachRobot(robot);
-
 
 	rvWidget->show();
 	cWidget->show();

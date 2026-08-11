@@ -20,11 +20,11 @@ ControlsWidget::~ControlsWidget()
 
 void ControlsWidget::attachRobot(QRobot *robot)
 {
-	if(nullptr==robot)
+	if (nullptr==robot)
 	{
 		return;
 	}
-	if(nullptr!=this->mRobot)
+	if (nullptr!=this->mRobot)
 	{
 		QObject::disconnect(this->mRobot, nullptr, this, nullptr);
 		QObject::disconnect(this, nullptr, this->mRobot, nullptr);
@@ -96,7 +96,7 @@ void ControlsWidget::onRobotConfigurationChanged()
 
 void ControlsWidget::onJ0ControlValueChanged(int value)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -106,7 +106,7 @@ void ControlsWidget::onJ0ControlValueChanged(int value)
 
 void ControlsWidget::onJ1ControlValueChanged(int value)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -116,7 +116,7 @@ void ControlsWidget::onJ1ControlValueChanged(int value)
 
 void ControlsWidget::onJ2ControlValueChanged(int value)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -126,7 +126,7 @@ void ControlsWidget::onJ2ControlValueChanged(int value)
 
 void ControlsWidget::onJ3ControlValueChanged(int value)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -136,7 +136,7 @@ void ControlsWidget::onJ3ControlValueChanged(int value)
 
 void ControlsWidget::onJ4ControlValueChanged(int value)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -146,7 +146,7 @@ void ControlsWidget::onJ4ControlValueChanged(int value)
 
 void ControlsWidget::onJ5ControlValueChanged(int value)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -156,7 +156,7 @@ void ControlsWidget::onJ5ControlValueChanged(int value)
 
 void ControlsWidget::on_pushButton_start_animation_clicked()
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -165,7 +165,7 @@ void ControlsWidget::on_pushButton_start_animation_clicked()
 
 void ControlsWidget::on_lineEdit_target_x_textChanged(const QString &arg1)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -175,7 +175,7 @@ void ControlsWidget::on_lineEdit_target_x_textChanged(const QString &arg1)
 
 void ControlsWidget::on_lineEdit_target_y_textChanged(const QString &arg1)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -185,7 +185,7 @@ void ControlsWidget::on_lineEdit_target_y_textChanged(const QString &arg1)
 
 void ControlsWidget::on_lineEdit_target_z_textChanged(const QString &arg1)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -195,7 +195,7 @@ void ControlsWidget::on_lineEdit_target_z_textChanged(const QString &arg1)
 
 void ControlsWidget::on_lineEdit_target_pitch_textEdited(const QString &arg1)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -205,7 +205,7 @@ void ControlsWidget::on_lineEdit_target_pitch_textEdited(const QString &arg1)
 
 void ControlsWidget::on_lineEdit_target_yaw_textEdited(const QString &arg1)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}
@@ -215,7 +215,7 @@ void ControlsWidget::on_lineEdit_target_yaw_textEdited(const QString &arg1)
 
 void ControlsWidget::on_lineEdit_target_roll_textEdited(const QString &arg1)
 {
-	if(mMuteControls)
+	if (mMuteControls)
 	{
 		return;
 	}

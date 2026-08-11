@@ -19,11 +19,11 @@ RobotViewWidget::~RobotViewWidget()
 
 void RobotViewWidget::attachRobot(QRobot *robot)
 {
-	if(nullptr==robot)
+	if (nullptr==robot)
 	{
 		return;
 	}
-	if(nullptr!=this->robot)
+	if (nullptr!=this->robot)
 	{
 		QObject::disconnect(this->robot, nullptr, this, nullptr);
 		QObject::disconnect(this, nullptr, this->robot, nullptr);
@@ -53,7 +53,7 @@ void RobotViewWidget::mousePressEvent(QMouseEvent *event)
 
 void RobotViewWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	if(!cameraRotation)
+	if (!cameraRotation)
 	{
 		return;
 	}
@@ -84,7 +84,7 @@ void RobotViewWidget::wheelEvent(QWheelEvent *event)
 {
 	event->accept();
 	qreal zShiftCorrection=5.25;
-	if(event->angleDelta().ry()>0)
+	if (event->angleDelta().ry()>0)
 	{
 		mZoom+=zShiftCorrection;
 	}
@@ -117,7 +117,7 @@ void RobotViewWidget::initializeGL()
 		QVector3D(0.75f, 0.95f, 0.95f),
 		QVector3D(0.97f, 0.21f, 0.21f),
 	};
-	for(int modelID=0; modelID<mSTLFiles.size(); modelID++)
+	for (int modelID=0; modelID<mSTLFiles.size(); modelID++)
 	{
 		GeometryEngine *newModelGeometry=new GeometryEngine;
 		newModelGeometry->loadModelFromStlFile(mSTLFiles.at(modelID));
@@ -133,19 +133,19 @@ void RobotViewWidget::initializeGL()
 
 void RobotViewWidget::initShaders()
 {
-	if(!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
+	if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
 	{
 		close();
 	}
-	if(!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
+	if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
 	{
 		close();
 	}
-	if(!program.link())
+	if (!program.link())
 	{
 		close();
 	}
-	if(!program.bind())
+	if (!program.bind())
 	{
 		close();
 	}
@@ -164,7 +164,7 @@ void RobotViewWidget::resizeGL(int w, int h)
 
 void RobotViewWidget::paintGL()
 {
-	if(!robot)
+	if (!robot)
 	{
 		return;
 	}

@@ -282,8 +282,27 @@ void QRobot::setJointAngle(uint32_t joint_index, double deg)
 	deg=qBound(mJointLimitMin[joint_index], deg, mJointLimitMax[joint_index]);
 	if (mJointAngles[joint_index] != deg)
 	{
-		mJointAngles[joint_index]=deg;
+		mJointAngles[joint_index] = deg;
 		recalculateLinkMatrices(joint_index);
+		emit configurationChanged();
+	}
+}
+
+void QRobot::setPose(const Pose &pose)
+{
+	bool poseChanged=false;
+	for (uint32_t joint_index=0; joint_index<numOfJoints; joint_index++)
+	{
+		double newJointAngle=qBound(mJointLimitMin[joint_index], pose.jointAngles[joint_index], mJointLimitMax[joint_index]);
+		if (mJointAngles[joint_index] != newJointAngle)
+		{
+			mJointAngles[joint_index] = newJointAngle;
+			poseChanged=true;
+		}
+	}
+	if(poseChanged)
+	{
+		recalculateLinkMatrices(0);
 		emit configurationChanged();
 	}
 }

@@ -36,6 +36,10 @@ public:
 	static constexpr double ikSlowdownCoefficient=-0.75;
 	static constexpr uint32_t ikIterationsPerCycle=16;
 	static constexpr uint32_t numOfJoints=6;
+	struct Pose
+	{
+		qreal jointAngles[numOfJoints]; // deg
+	};
 	QRobot(QObject *parent=nullptr);
 
 	double getJointAngle(uint32_t joint_index) const;
@@ -53,6 +57,7 @@ public:
 
 public slots:
 	void setJointAngle(uint32_t joint_index, double deg);
+	void setPose(const Pose &pose);
 	void setTargetPosition(float x, float y, float z);
 	void setTargetOrientation(float pitch, float yaw, float roll);
 	double solveIkForPosition(const QVector3D &position);
