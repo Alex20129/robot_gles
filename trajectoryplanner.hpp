@@ -5,6 +5,7 @@
 #include <QVector3D>
 #include <QVector>
 #include <QString>
+#include <QBasicTimer>
 #include "robot.hpp"
 
 struct TrajectorySegment
@@ -19,18 +20,17 @@ struct TrajectorySegment
 class QTrajectoryPlanner : public QObject
 {
 	Q_OBJECT
-
-	QRobot *mRobot;
+	QBasicTimer mAnimationTimer;
 	QVector<TrajectorySegment> mSegments;
 	QVector<QRobot::Pose> mPoses;
+	QRobot *mRobot;
 	double mVelocity=10.0; // mm/s
 	double mStep=0.25; // mm
-
-	void generatePoses(const TrajectorySegment &segment);
+	uint32_t mAnimationProgress=0;
+	void timerEvent(QTimerEvent *event) override;
 
 public:
 	QTrajectoryPlanner(QRobot *robot, QObject *parent = nullptr);
-
 	void clear();
 	void addSegment(const TrajectorySegment &segment);
 	bool loadFromJsonFile(const QString &file);
@@ -38,9 +38,14 @@ public:
 	void setStep(double mm);
 	const QVector<QRobot::Pose> &getPoses() const;
 
+public slots:
+	void startAnimation();
+
 signals:
 	void planningFinished(int totalPoints, int failedPoints);
 	void planningError(const QString &message);
+	void needToSetPose(const QRobot::Pose &pose);
+	void animationFinished();
 };
 
 #endif // TRAJECTORYPLANNER_HPP

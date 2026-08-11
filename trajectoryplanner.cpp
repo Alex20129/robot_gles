@@ -2,11 +2,28 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QTimerEvent>
 #include "trajectoryplanner.hpp"
+
+void QTrajectoryPlanner::timerEvent(QTimerEvent *event)
+{
+	event->accept();
+	if (mAnimationProgress>=mPoses.size())
+	{
+		mAnimationTimer.stop();
+		mAnimationProgress=0;
+		emit animationFinished();
+	}
+	else
+	{
+		emit needToSetPose(mPoses[mAnimationProgress++]);
+	}
+}
 
 QTrajectoryPlanner::QTrajectoryPlanner(QRobot *robot, QObject *parent) : QObject(parent)
 {
 	mRobot=robot;
+	QObject::connect(this, &QTrajectoryPlanner::needToSetPose, robot, &QRobot::setPose);
 }
 
 void QTrajectoryPlanner::clear()
@@ -15,30 +32,39 @@ void QTrajectoryPlanner::clear()
 	mPoses.clear();
 }
 
-void QTrajectoryPlanner::generatePoses(const TrajectorySegment &segment)
+void QTrajectoryPlanner::addSegment(const TrajectorySegment &segment)
 {
+	mSegments.push_back(segment);
 	switch (segment.type)
 	{
 		default:
 		case TrajectorySegment::SegmentType::Line:
 		{
+			QQuaternion quOrientationA=QQuaternion::fromEulerAngles(segment.orientationA);
+			QQuaternion quOrientationB=QQuaternion::fromEulerAngles(segment.orientationB);
+			// TODO: split the segment properly
+			for(uint i=0; i<128; i++)
+			{
+				double t=i/128.0;
+				// TODO: handle unsolved position cases
+				double PositionError=mRobot->solveIkForPosition(segment.positionA*(1.0-t) + segment.positionB*t);
+				// TODO: handle unsolved orientation cases
+				double OrientationError=mRobot->solveIkForOrientation(QQuaternion::slerp(quOrientationA, quOrientationB, t));
+				mPoses.push_back(mRobot->getPose());
+			}
 			break;
 		}
 		case TrajectorySegment::SegmentType::Arc:
 		{
+			// TODO: Arc
 			break;
 		}
 		case TrajectorySegment::SegmentType::Spline:
 		{
+			// TODO: Spline
 			break;
 		}
 	}
-}
-
-void QTrajectoryPlanner::addSegment(const TrajectorySegment &segment)
-{
-	mSegments.push_back(segment);
-	generatePoses(segment);
 }
 
 bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
@@ -56,12 +82,10 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 	{
 		return (false);
 	}
-	bool itsAfirstSegment=true;
 	for (const QJsonValue &segmentJsonValue : pathJsonArray)
 	{
 		QJsonObject segmentJsonObject=segmentJsonValue.toObject();
 		TrajectorySegment segment;
-
 		if(segmentJsonObject.value("type").toString()==QStringLiteral("spline"))
 		{
 			segment.type=TrajectorySegment::SegmentType::Spline;
@@ -74,11 +98,9 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 		{
 			segment.type=TrajectorySegment::SegmentType::Line;
 		}
-
 		segment.speed = segmentJsonObject.value("speed").toDouble(1.0);
-		if (itsAfirstSegment)
+		if (mSegments.size()==0)
 		{
-			itsAfirstSegment=false;
 			segment.positionA.setX(segmentJsonObject.value("a").toArray().at(0).toDouble());
 			segment.positionA.setY(segmentJsonObject.value("a").toArray().at(1).toDouble());
 			segment.positionA.setZ(segmentJsonObject.value("a").toArray().at(2).toDouble());
@@ -100,6 +122,12 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 		}
 		else
 		{
+			segment.positionA.setX(mSegments.back().positionB.x());
+			segment.positionA.setY(mSegments.back().positionB.y());
+			segment.positionA.setZ(mSegments.back().positionB.z());
+			segment.orientationA.setX(mSegments.back().orientationB.x());
+			segment.orientationA.setY(mSegments.back().orientationB.y());
+			segment.orientationA.setZ(mSegments.back().orientationB.z());
 			segment.positionB.setX(segmentJsonObject.value("b").toArray().at(0).toDouble());
 			segment.positionB.setY(segmentJsonObject.value("b").toArray().at(1).toDouble());
 			segment.positionB.setZ(segmentJsonObject.value("b").toArray().at(2).toDouble());
@@ -132,4 +160,10 @@ void QTrajectoryPlanner::setStep(double mm)
 const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
 {
 	return (mPoses);
+}
+
+void QTrajectoryPlanner::startAnimation()
+{
+	mAnimationProgress=0;
+	mAnimationTimer.start(10, this);
 }

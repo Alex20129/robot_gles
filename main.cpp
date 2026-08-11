@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
 	ControlsWidget *cWidget=new ControlsWidget;
 	cWidget->attachRobot(robot);
 
+	QObject::connect(cWidget, &ControlsWidget::needToStartAnimation, trajectoryPlanner, &QTrajectoryPlanner::startAnimation);
+
 	rvWidget->show();
 	cWidget->show();
 

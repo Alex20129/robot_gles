@@ -5,13 +5,10 @@
 #include <QVector3D>
 #include <QQuaternion>
 #include <QMatrix4x4>
-#include <QBasicTimer>
 
 class QRobot : public QObject
 {
 	Q_OBJECT
-	QBasicTimer mAnimationTimer;
-	QVector <double> mJointAngles; // deg
 	QVector <double> mJointLimitMin; // deg
 	QVector <double> mJointLimitMax; // deg
 	QVector <double> mLinkLengths; // mm
@@ -23,13 +20,8 @@ class QRobot : public QObject
 	QQuaternion mTargetOrientation;
 	double mFlangeOffset=80.0;
 	double mToolOffset=0.0;
-	double mAnimationProgress=0.0;
-	double mAnimationStep=0.0;
-	volatile bool mIkPositionSolved=true;
-	volatile bool mIkOrientationSolved=true;
 	void recalculateLinkMatrices(uint32_t from);
 	void recalculateTargetMatrix();
-	void timerEvent(QTimerEvent *event) override;
 
 public:
 	static constexpr double ikInitialStep=1.0; // deg
@@ -38,11 +30,11 @@ public:
 	static constexpr uint32_t numOfJoints=6;
 	struct Pose
 	{
-		qreal jointAngles[numOfJoints]; // deg
+		double jointAngles[numOfJoints]; // deg
 	};
 	QRobot(QObject *parent=nullptr);
-
 	double getJointAngle(uint32_t joint_index) const;
+	const QRobot::Pose &getPose() const;
 	QPair<qreal, qreal> getJointLimits(uint32_t joint_index) const;
 	const QMatrix4x4 &getLinkMatrix(uint32_t link_index) const;
 	const QMatrix4x4 &getTargetMatrix() const;
@@ -54,20 +46,21 @@ public:
 	void setLinkLength(uint32_t link_index, double mm);
 	void setFlangeOffset(double mm);
 	void setToolOffset(double mm);
+	double solveIkForPosition(const QVector3D &position);
+	double solveIkForOrientation(const QQuaternion &orientation);
+
+private:
+	QRobot::Pose mPose;
 
 public slots:
 	void setJointAngle(uint32_t joint_index, double deg);
-	void setPose(const Pose &pose);
+	void setPose(const QRobot::Pose &pose);
 	void setTargetPosition(float x, float y, float z);
 	void setTargetOrientation(float pitch, float yaw, float roll);
-	double solveIkForPosition(const QVector3D &position);
-	double solveIkForOrientation(const QQuaternion &orientation);
-	void startAnimation();
 
 signals:
 	void configurationChanged();
 	void targetPositionChanged();
-	void animationFinished();
 };
 
 #endif // ROBOT_HPP

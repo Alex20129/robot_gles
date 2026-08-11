@@ -1,38 +1,8 @@
 #include "robot.hpp"
 #include <cmath>
-#include <QTimerEvent>
-
-void QRobot::timerEvent(QTimerEvent *event)
-{
-	event->accept();
-	bool animFinished=false;
-	if (mIkPositionSolved && mIkOrientationSolved)
-	{
-		mIkPositionSolved=false;
-		mIkOrientationSolved=false;
-		mAnimationProgress+=mAnimationStep;
-		if (mAnimationProgress>=1.0)
-		{
-			mAnimationProgress=1.0;
-			mAnimationTimer.stop();
-			animFinished=true;
-		}
-		// TODO: handle unsolved position cases
-		double PositionError=solveIkForPosition(mStartPosition*(1.0-mAnimationProgress) + mTargetPosition*mAnimationProgress);
-		mIkPositionSolved=true;
-		// TODO: handle unsolved orientation cases
-		double OrientationError=solveIkForOrientation(QQuaternion::slerp(mStartOrientation, mTargetOrientation, mAnimationProgress));
-		mIkOrientationSolved=true;
-	}
-	if (animFinished)
-	{
-		emit animationFinished();
-	}
-}
 
 QRobot::QRobot(QObject *parent) : QObject(parent)
 {
-	mJointAngles.resize(numOfJoints);
 	mJointLimitMin.resize(numOfJoints);
 	mJointLimitMax.resize(numOfJoints);
 	mLinkMatrices.resize(numOfJoints);
@@ -63,15 +33,10 @@ QRobot::QRobot(QObject *parent) : QObject(parent)
 		0.0,
 		0.0,
 	};
-	mJointAngles =
+	for (uint32_t joint=0; joint<QRobot::numOfJoints; joint++)
 	{
-		0.0,
-		0.0,
-		0.0,
-		0.0,
-		0.0,
-		0.0,
-	};
+		mPose.jointAngles[joint] = 0.0;
+	}
 	recalculateLinkMatrices(0);
 }
 
@@ -83,35 +48,35 @@ void QRobot::recalculateLinkMatrices(uint32_t from)
 		case 0:
 		{
 			mLinkMatrices[0].setToIdentity();
-			mLinkMatrices[0].rotate(mJointAngles[0], 0, 0, 1);
+			mLinkMatrices[0].rotate(mPose.jointAngles[0], 0, 0, 1);
 			mLinkMatrices[0].translate(0, 0, mLinkLengths[0]);
 		}
 		case 1:
 		{
 			mLinkMatrices[1]=mLinkMatrices[0];
-			mLinkMatrices[1].rotate(mJointAngles[1], 1, 0, 0);
+			mLinkMatrices[1].rotate(mPose.jointAngles[1], 1, 0, 0);
 			mLinkMatrices[1].translate(0, 0, mLinkLengths[1]);
 		}
 		case 2:
 		{
 			mLinkMatrices[2]=mLinkMatrices[1];
-			mLinkMatrices[2].rotate(mJointAngles[2], 1, 0, 0);
+			mLinkMatrices[2].rotate(mPose.jointAngles[2], 1, 0, 0);
 			mLinkMatrices[2].translate(0, 0, mLinkLengths[2]);
 		}
 		case 3:
 		{
 			mLinkMatrices[3]=mLinkMatrices[2];
-			mLinkMatrices[3].rotate(mJointAngles[3], 0, 0, 1);
+			mLinkMatrices[3].rotate(mPose.jointAngles[3], 0, 0, 1);
 		}
 		case 4:
 		{
 			mLinkMatrices[4]=mLinkMatrices[3];
-			mLinkMatrices[4].rotate(mJointAngles[4], 1, 0, 0);
+			mLinkMatrices[4].rotate(mPose.jointAngles[4], 1, 0, 0);
 		}
 		case 5:
 		{
 			mLinkMatrices[5]=mLinkMatrices[4];
-			mLinkMatrices[5].rotate(mJointAngles[5], 0, 0, 1);
+			mLinkMatrices[5].rotate(mPose.jointAngles[5], 0, 0, 1);
 		}
 	}
 }
@@ -124,6 +89,38 @@ void QRobot::recalculateTargetMatrix()
 		mTargetPosition.y(),
 		mTargetPosition.z());
 	mTargetMatrix.rotate(mTargetOrientation);
+}
+
+void QRobot::setJointLimits(uint32_t joint_index, double min_deg, double max_deg)
+{
+	if (joint_index >= numOfJoints)
+	{
+		return;
+	}
+	mJointLimitMin[joint_index]=qMin(min_deg, max_deg);
+	mJointLimitMax[joint_index]=qMax(min_deg, max_deg);
+}
+
+void QRobot::setLinkLength(uint32_t link_index, double mm)
+{
+	if (link_index >= numOfJoints)
+	{
+		return;
+	}
+	if (mLinkLengths[link_index] != mm)
+	{
+		mLinkLengths[link_index]=mm;
+	}
+}
+
+void QRobot::setFlangeOffset(double mm)
+{
+	mFlangeOffset=mm;
+}
+
+void QRobot::setToolOffset(double mm)
+{
+	mToolOffset=mm;
 }
 
 static double vectorDiffSq(const QVector3D &va, const QVector3D &vb)
@@ -146,8 +143,8 @@ double QRobot::solveIkForPosition(const QVector3D &position)
 		{
 			for (int j=0; j < 3; ++j)
 			{
-				const double oldAngle=mJointAngles[j];
-				mJointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
+				const double oldAngle=mPose.jointAngles[j];
+				mPose.jointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
 				const double newDiff=vectorDiffSq(position, getWristPosition());
 				if (DiffSq > newDiff)
@@ -157,14 +154,13 @@ double QRobot::solveIkForPosition(const QVector3D &position)
 				}
 				else
 				{
-					mJointAngles[j]=oldAngle;
+					mPose.jointAngles[j]=oldAngle;
 					recalculateLinkMatrices(j);
 					ikStep[j] *= ikSlowdownCoefficient;
 				}
 			}
 		}
 	}
-	emit configurationChanged();
 	return (DiffSq);
 }
 
@@ -199,8 +195,8 @@ double QRobot::solveIkForOrientation(const QQuaternion &orientation)
 		{
 			for (int j=3; j < 6; ++j)
 			{
-				const double oldAngle=mJointAngles[j];
-				mJointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
+				const double oldAngle=mPose.jointAngles[j];
+				mPose.jointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
 				const double newDiff=quaternionDiffSq(NormalizedOrientation, getWristOrientation());
 				if (DiffSq > newDiff)
@@ -210,79 +206,26 @@ double QRobot::solveIkForOrientation(const QQuaternion &orientation)
 				}
 				else
 				{
-					mJointAngles[j]=oldAngle;
+					mPose.jointAngles[j]=oldAngle;
 					recalculateLinkMatrices(j);
 					ikStep[j] *= ikSlowdownCoefficient;
 				}
 			}
 		}
 	}
-	emit configurationChanged();
 	return (DiffSq);
-}
-
-void QRobot::startAnimation()
-{
-	mStartPosition=getWristPosition();
-	mStartOrientation=getWristOrientation();
-	mAnimationProgress=0.0;
-	float distance=(mTargetPosition-mStartPosition).length();
-	if (distance>0.0)
-	{
-		mAnimationStep=1.0/distance;
-	}
-	else
-	{
-		mAnimationStep=1.0/16.0;
-	}
-	mAnimationTimer.start(10, this);
-}
-
-void QRobot::setJointLimits(uint32_t joint_index, double min_deg, double max_deg)
-{
-	mAnimationTimer.stop();
-	if (joint_index >= numOfJoints)
-	{
-		return;
-	}
-	mJointLimitMin[joint_index]=qMin(min_deg, max_deg);
-	mJointLimitMax[joint_index]=qMax(min_deg, max_deg);
-}
-
-void QRobot::setLinkLength(uint32_t link_index, double mm)
-{
-	mAnimationTimer.stop();
-	if (link_index >= numOfJoints)
-	{
-		return;
-	}
-	if (mLinkLengths[link_index] != mm)
-	{
-		mLinkLengths[link_index]=mm;
-	}
-}
-
-void QRobot::setFlangeOffset(double mm)
-{
-	mFlangeOffset=mm;
-}
-
-void QRobot::setToolOffset(double mm)
-{
-	mToolOffset=mm;
 }
 
 void QRobot::setJointAngle(uint32_t joint_index, double deg)
 {
-	mAnimationTimer.stop();
 	if (joint_index >= numOfJoints)
 	{
 		return;
 	}
 	deg=qBound(mJointLimitMin[joint_index], deg, mJointLimitMax[joint_index]);
-	if (mJointAngles[joint_index] != deg)
+	if (mPose.jointAngles[joint_index] != deg)
 	{
-		mJointAngles[joint_index] = deg;
+		mPose.jointAngles[joint_index] = deg;
 		recalculateLinkMatrices(joint_index);
 		emit configurationChanged();
 	}
@@ -291,12 +234,12 @@ void QRobot::setJointAngle(uint32_t joint_index, double deg)
 void QRobot::setPose(const Pose &pose)
 {
 	bool poseChanged=false;
-	for (uint32_t joint_index=0; joint_index<numOfJoints; joint_index++)
+	for (uint32_t joint=0; joint<QRobot::numOfJoints; joint++)
 	{
-		double newJointAngle=qBound(mJointLimitMin[joint_index], pose.jointAngles[joint_index], mJointLimitMax[joint_index]);
-		if (mJointAngles[joint_index] != newJointAngle)
+		double newJointAngle=qBound(mJointLimitMin[joint], pose.jointAngles[joint], mJointLimitMax[joint]);
+		if (mPose.jointAngles[joint] != newJointAngle)
 		{
-			mJointAngles[joint_index] = newJointAngle;
+			mPose.jointAngles[joint] = newJointAngle;
 			poseChanged=true;
 		}
 	}
@@ -315,10 +258,6 @@ void QRobot::setTargetPosition(float x, float y, float z)
 		mTargetPosition=newTargetPosition;
 		recalculateTargetMatrix();
 		emit targetPositionChanged();
-		if (mAnimationTimer.isActive())
-		{
-			startAnimation();
-		}
 	}
 }
 
@@ -330,10 +269,6 @@ void QRobot::setTargetOrientation(float pitch, float yaw, float roll)
 		mTargetOrientation=newTargetOrientation;
 		recalculateTargetMatrix();
 		emit targetPositionChanged();
-		if (mAnimationTimer.isActive())
-		{
-			startAnimation();
-		}
 	}
 }
 
@@ -343,7 +278,12 @@ double QRobot::getJointAngle(uint32_t joint_index) const
 	{
 		joint_index=0;
 	}
-	return (mJointAngles[joint_index]);
+	return (mPose.jointAngles[joint_index]);
+}
+
+const QRobot::Pose &QRobot::getPose() const
+{
+	return (mPose);
 }
 
 QPair<qreal, qreal> QRobot::getJointLimits(uint32_t joint_index) const
