@@ -25,7 +25,7 @@ class QTrajectoryPlanner : public QObject
 	QVector<QRobot::Pose> mPoses;
 	QRobot *mRobot=nullptr;
 	double mStepSize=0.25; // mm
-	uint32_t mAnimationProgress=0;
+	int mAnimationProgress=0;
 	void timerEvent(QTimerEvent *event) override;
 	void rebuildPoses();
 

@@ -91,6 +91,13 @@ void QTrajectoryPlanner::rebuildPoses()
 			}
 		}
 	}
+	if (!mSegments.isEmpty())
+	{
+		const TrajectorySegment &lastSegment = mSegments.last();
+		mRobot->solveIkForPosition(lastSegment.positionB);
+		mRobot->solveIkForOrientation(QQuaternion::fromEulerAngles(lastSegment.orientationB));
+		mPoses.push_back(mRobot->getPose());
+	}
 }
 
 void QTrajectoryPlanner::addPathSegment(const TrajectorySegment &segment)
