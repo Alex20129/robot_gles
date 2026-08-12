@@ -63,11 +63,14 @@ void QTrajectoryPlanner::rebuildPoses()
 				QQuaternion quOrientationA=QQuaternion::fromEulerAngles(segment.orientationA);
 				QQuaternion quOrientationB=QQuaternion::fromEulerAngles(segment.orientationB);
 				double distance=(segment.positionA-segment.positionB).length();
-				double steps=distance/mStepSize;
-				steps=steps>0.0?steps:1.0;
-				for(uint i=0; i<steps; i++)
+				uint steps=distance/mStepSize;
+				if(steps<2)
 				{
-					double t=i/steps;
+					steps=2;
+				}
+				for(uint step=0; step<steps; step++)
+				{
+					double t=(double)(step)/(double)(steps);
 					// TODO: handle unsolved position cases
 					double PositionError=mRobot->solveIkForPosition(segment.positionA*(1.0-t) + segment.positionB*t);
 					// TODO: handle unsolved orientation cases
