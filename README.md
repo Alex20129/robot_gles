@@ -12,9 +12,8 @@ The application provides manual joint control and animated movement to a target 
 - Binary STL model loading for individual links and target marker
 - Interactive camera (orbit + zoom)
 - Manual joint angle control
-- Target position and orientation input
-- Animated movement to the target pose (LERP for position + SLERP for orientation)
 - Inverse kinematics solver
+- Animated movement along a given path
 
 ## Inverse Kinematics
 
