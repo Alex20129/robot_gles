@@ -83,6 +83,23 @@ void QTrajectoryPlanner::rebuildPoses()
 			case TrajectorySegment::SegmentType::Arc:
 			{
 				// TODO: Arc
+				QVector3D a=segment.positionA;
+				QVector3D b=segment.positionB;
+				QVector3D c=segment.positionC;
+
+				QVector3D ca=a-c;
+				QVector3D cb=b-c;
+
+				QVector3D normal=QVector3D::crossProduct(ca, cb);
+				float normalLengthSquared=normal.lengthSquared();
+				float caLengthSquared=ca.lengthSquared();
+				float cbLengthSquared=cb.lengthSquared();
+
+				QVector3D cToCenter = QVector3D::crossProduct(
+					caLengthSquared * cb - cbLengthSquared * ca, normal) / (2.0f * normalLengthSquared);
+				QVector3D center = c + cToCenter;
+				float radius = (c - center).length();
+
 				break;
 			}
 			case TrajectorySegment::SegmentType::Spline:
