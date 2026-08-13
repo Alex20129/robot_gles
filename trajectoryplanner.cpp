@@ -8,16 +8,17 @@
 void QTrajectoryPlanner::timerEvent(QTimerEvent *event)
 {
 	event->accept();
-	if (mAnimationProgress>=mPoses.size())
+	if (mAnimationProgress<mPoses.size())
 	{
-		mAnimationTimer.stop();
-		mAnimationProgress=0;
-		emit animationFinished();
+		mAnimationTimer.start(mAnimationFrameInterval, this);
+		emit needToSetPose(mPoses[mAnimationProgress]);
 	}
 	else
 	{
-		emit needToSetPose(mPoses[mAnimationProgress++]);
+		mAnimationTimer.stop();
+		emit animationFinished();
 	}
+	mAnimationProgress++;
 }
 
 QTrajectoryPlanner::QTrajectoryPlanner(QObject *parent) : QObject(parent)
@@ -226,8 +227,18 @@ const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
 	return (mPoses);
 }
 
+void QTrajectoryPlanner::setAnimationSpeed(int speed)
+{
+	int newFrameInterval=256-speed;
+	if(newFrameInterval<1)
+	{
+		newFrameInterval=1;
+	}
+	mAnimationFrameInterval=newFrameInterval;
+}
+
 void QTrajectoryPlanner::startAnimation()
 {
 	mAnimationProgress=0;
-	mAnimationTimer.start(5, this);
+	mAnimationTimer.start(mAnimationFrameInterval, this);
 }

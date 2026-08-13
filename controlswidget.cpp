@@ -221,3 +221,9 @@ void ControlsWidget::on_lineEdit_target_roll_textEdited(const QString &arg1)
 	mTargetOrientationRoll=arg1.toFloat();
 	emit needToSetTargetOrientation(mTargetOrientationPitch, mTargetOrientationYaw, mTargetOrientationRoll);
 }
+
+void ControlsWidget::on_animationSpeedSlider_valueChanged(int value)
+{
+	emit needToSetAnimationSpeed(value);
+}
+

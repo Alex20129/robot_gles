@@ -40,6 +40,7 @@ private slots:
 	void on_lineEdit_target_pitch_textEdited(const QString &arg1);
 	void on_lineEdit_target_yaw_textEdited(const QString &arg1);
 	void on_lineEdit_target_roll_textEdited(const QString &arg1);
+	void on_animationSpeedSlider_valueChanged(int value);
 
 public:
 	explicit ControlsWidget(QWidget *parent = nullptr);
@@ -50,6 +51,7 @@ signals:
 	void jointControlValueChanged(int jointIndex, double deg);
 	void needToSetTargetPosition(float x, float y, float z);
 	void needToSetTargetOrientation(float pitch, float yaw, float roll);
+	void needToSetAnimationSpeed(int speed);
 	void needToStartAnimation();
 };
 

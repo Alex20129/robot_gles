@@ -26,6 +26,7 @@ class QTrajectoryPlanner : public QObject
 	QRobot *mRobot=nullptr;
 	double mStepSize=0.25; // mm
 	int mAnimationProgress=0;
+	int mAnimationFrameInterval=50;
 	void timerEvent(QTimerEvent *event) override;
 	void rebuildPoses();
 
@@ -40,6 +41,7 @@ public:
 	const QVector<QRobot::Pose> &getPoses() const;
 
 public slots:
+	void setAnimationSpeed(int speed);
 	void startAnimation();
 
 signals:
