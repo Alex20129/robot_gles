@@ -35,6 +35,7 @@ public:
 	void clear();
 	void addPathSegment(const TrajectorySegment &segment);
 	bool loadFromJsonFile(const QString &file);
+	bool saveToJsonFile(const QString &file);
 	void setStepSize(double mm);
 	const QVector<QRobot::Pose> &getPoses() const;
 

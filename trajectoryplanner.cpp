@@ -210,6 +210,12 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 	return (true);
 }
 
+// TODO:
+bool QTrajectoryPlanner::saveToJsonFile(const QString &file)
+{
+	return (true);
+}
+
 void QTrajectoryPlanner::setStepSize(double mm)
 {
 	mStepSize=mm;
