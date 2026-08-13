@@ -139,24 +139,39 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 		segment.speed = segmentJsonObject.value("speed").toDouble(1.0);
 		if (mSegments.size()==0)
 		{
-			segment.positionA.setX(segmentJsonObject.value("a").toArray().at(0).toDouble());
-			segment.positionA.setY(segmentJsonObject.value("a").toArray().at(1).toDouble());
-			segment.positionA.setZ(segmentJsonObject.value("a").toArray().at(2).toDouble());
-			segment.orientationA.setX(segmentJsonObject.value("a").toArray().at(3).toDouble());
-			segment.orientationA.setY(segmentJsonObject.value("a").toArray().at(4).toDouble());
-			segment.orientationA.setZ(segmentJsonObject.value("a").toArray().at(5).toDouble());
-			segment.positionB.setX(segmentJsonObject.value("b").toArray().at(0).toDouble());
-			segment.positionB.setY(segmentJsonObject.value("b").toArray().at(1).toDouble());
-			segment.positionB.setZ(segmentJsonObject.value("b").toArray().at(2).toDouble());
-			segment.orientationB.setX(segmentJsonObject.value("b").toArray().at(3).toDouble());
-			segment.orientationB.setY(segmentJsonObject.value("b").toArray().at(4).toDouble());
-			segment.orientationB.setZ(segmentJsonObject.value("b").toArray().at(5).toDouble());
-			segment.positionC.setX(segmentJsonObject.value("c").toArray().at(0).toDouble());
-			segment.positionC.setY(segmentJsonObject.value("c").toArray().at(1).toDouble());
-			segment.positionC.setZ(segmentJsonObject.value("c").toArray().at(2).toDouble());
-			segment.orientationC.setX(segmentJsonObject.value("c").toArray().at(3).toDouble());
-			segment.orientationC.setY(segmentJsonObject.value("c").toArray().at(4).toDouble());
-			segment.orientationC.setZ(segmentJsonObject.value("c").toArray().at(5).toDouble());
+			QJsonValue aPointJsonValue=segmentJsonObject.value("a");
+			if(aPointJsonValue.isArray())
+			{
+				QJsonArray aPointJsonArray=aPointJsonValue.toArray();
+				segment.positionA.setX(aPointJsonArray.at(0).toDouble());
+				segment.positionA.setY(aPointJsonArray.at(1).toDouble());
+				segment.positionA.setZ(aPointJsonArray.at(2).toDouble());
+				segment.orientationA.setX(aPointJsonArray.at(3).toDouble());
+				segment.orientationA.setY(aPointJsonArray.at(4).toDouble());
+				segment.orientationA.setZ(aPointJsonArray.at(5).toDouble());
+			}
+			QJsonValue bPointJsonValue=segmentJsonObject.value("b");
+			if(bPointJsonValue.isArray())
+			{
+				QJsonArray bPointJsonArray=bPointJsonValue.toArray();
+				segment.positionB.setX(bPointJsonArray.at(0).toDouble());
+				segment.positionB.setY(bPointJsonArray.at(1).toDouble());
+				segment.positionB.setZ(bPointJsonArray.at(2).toDouble());
+				segment.orientationB.setX(bPointJsonArray.at(3).toDouble());
+				segment.orientationB.setY(bPointJsonArray.at(4).toDouble());
+				segment.orientationB.setZ(bPointJsonArray.at(5).toDouble());
+			}
+			QJsonValue cPointJsonValue=segmentJsonObject.value("c");
+			if(cPointJsonValue.isArray())
+			{
+				QJsonArray cPointJsonArray=cPointJsonValue.toArray();
+				segment.positionC.setX(cPointJsonArray.at(0).toDouble());
+				segment.positionC.setY(cPointJsonArray.at(1).toDouble());
+				segment.positionC.setZ(cPointJsonArray.at(2).toDouble());
+				segment.orientationC.setX(cPointJsonArray.at(3).toDouble());
+				segment.orientationC.setY(cPointJsonArray.at(4).toDouble());
+				segment.orientationC.setZ(cPointJsonArray.at(5).toDouble());
+			}
 		}
 		else
 		{
@@ -166,18 +181,28 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 			segment.orientationA.setX(mSegments.back().orientationB.x());
 			segment.orientationA.setY(mSegments.back().orientationB.y());
 			segment.orientationA.setZ(mSegments.back().orientationB.z());
-			segment.positionB.setX(segmentJsonObject.value("b").toArray().at(0).toDouble());
-			segment.positionB.setY(segmentJsonObject.value("b").toArray().at(1).toDouble());
-			segment.positionB.setZ(segmentJsonObject.value("b").toArray().at(2).toDouble());
-			segment.orientationB.setX(segmentJsonObject.value("b").toArray().at(3).toDouble());
-			segment.orientationB.setY(segmentJsonObject.value("b").toArray().at(4).toDouble());
-			segment.orientationB.setZ(segmentJsonObject.value("b").toArray().at(5).toDouble());
-			segment.positionC.setX(segmentJsonObject.value("c").toArray().at(0).toDouble());
-			segment.positionC.setY(segmentJsonObject.value("c").toArray().at(1).toDouble());
-			segment.positionC.setZ(segmentJsonObject.value("c").toArray().at(2).toDouble());
-			segment.orientationC.setX(segmentJsonObject.value("c").toArray().at(3).toDouble());
-			segment.orientationC.setY(segmentJsonObject.value("c").toArray().at(4).toDouble());
-			segment.orientationC.setZ(segmentJsonObject.value("c").toArray().at(5).toDouble());
+			QJsonValue bPointJsonValue=segmentJsonObject.value("b");
+			if(bPointJsonValue.isArray())
+			{
+				QJsonArray bPointJsonArray=bPointJsonValue.toArray();
+				segment.positionB.setX(bPointJsonArray.at(0).toDouble());
+				segment.positionB.setY(bPointJsonArray.at(1).toDouble());
+				segment.positionB.setZ(bPointJsonArray.at(2).toDouble());
+				segment.orientationB.setX(bPointJsonArray.at(3).toDouble());
+				segment.orientationB.setY(bPointJsonArray.at(4).toDouble());
+				segment.orientationB.setZ(bPointJsonArray.at(5).toDouble());
+			}
+			QJsonValue cPointJsonValue=segmentJsonObject.value("c");
+			if(cPointJsonValue.isArray())
+			{
+				QJsonArray cPointJsonArray=cPointJsonValue.toArray();
+				segment.positionC.setX(cPointJsonArray.at(0).toDouble());
+				segment.positionC.setY(cPointJsonArray.at(1).toDouble());
+				segment.positionC.setZ(cPointJsonArray.at(2).toDouble());
+				segment.orientationC.setX(cPointJsonArray.at(3).toDouble());
+				segment.orientationC.setY(cPointJsonArray.at(4).toDouble());
+				segment.orientationC.setZ(cPointJsonArray.at(5).toDouble());
+			}
 		}
 		addPathSegment(segment);
 	}
