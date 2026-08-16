@@ -118,11 +118,6 @@ void QTrajectoryPlanner::rebuildPoses()
 	}
 }
 
-void QTrajectoryPlanner::addPathSegment(const TrajectorySegment &segment)
-{
-	mSegments.push_back(segment);
-}
-
 bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 {
 	QFile jsonFile(file);
@@ -234,14 +229,27 @@ bool QTrajectoryPlanner::saveToJsonFile(const QString &file)
 	return (true);
 }
 
-void QTrajectoryPlanner::setStepSize(double mm)
+void QTrajectoryPlanner::setStepSize(double step_size)
 {
-	mStepSize=mm;
+	if(step_size<QTrajectoryPlanner::StepSizeMin)
+	{
+		step_size=QTrajectoryPlanner::StepSizeMin;
+	}
+	else if(step_size>QTrajectoryPlanner::StepSizeMax)
+	{
+		step_size=QTrajectoryPlanner::StepSizeMax;
+	}
+	mStepSize=step_size;
 }
 
 const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
 {
 	return (mPoses);
+}
+
+void QTrajectoryPlanner::addPathSegment(const TrajectorySegment &segment)
+{
+	mSegments.push_back(segment);
 }
 
 void QTrajectoryPlanner::setAnimationSpeed(int speed)

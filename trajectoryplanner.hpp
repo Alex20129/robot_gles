@@ -31,16 +31,18 @@ class QTrajectoryPlanner : public QObject
 	void rebuildPoses();
 
 public:
+	static constexpr double StepSizeMin=1.0/1024.0;
+	static constexpr double StepSizeMax=1024.0;
 	QTrajectoryPlanner(QObject *parent = nullptr);
 	void attachRobot(QRobot *robot);
 	void clear();
-	void addPathSegment(const TrajectorySegment &segment);
 	bool loadFromJsonFile(const QString &file);
 	bool saveToJsonFile(const QString &file);
-	void setStepSize(double mm);
+	void setStepSize(double step_size);
 	const QVector<QRobot::Pose> &getPoses() const;
 
 public slots:
+	void addPathSegment(const TrajectorySegment &segment);
 	void setAnimationSpeed(int speed);
 	void startAnimation();
 
