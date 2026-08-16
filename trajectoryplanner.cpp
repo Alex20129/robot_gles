@@ -252,13 +252,17 @@ void QTrajectoryPlanner::addPathSegment(const TrajectorySegment &segment)
 	mSegments.push_back(segment);
 }
 
-void QTrajectoryPlanner::setAnimationSpeed(int speed)
+void QTrajectoryPlanner::setAnimationSpeed(int animation_speed)
 {
-	int newFrameInterval=256-speed;
-	if(newFrameInterval<1)
+	if(animation_speed<QTrajectoryPlanner::AnimationSpeedMin)
 	{
-		newFrameInterval=1;
+		animation_speed=QTrajectoryPlanner::AnimationSpeedMin;
 	}
+	else if(animation_speed>QTrajectoryPlanner::AnimationSpeedMax)
+	{
+		animation_speed=QTrajectoryPlanner::AnimationSpeedMax;
+	}
+	int newFrameInterval=(QTrajectoryPlanner::AnimationSpeedMax+1)-animation_speed;
 	mAnimationFrameInterval=newFrameInterval;
 }
 

@@ -33,6 +33,8 @@ class QTrajectoryPlanner : public QObject
 public:
 	static constexpr double StepSizeMin=1.0/1024.0;
 	static constexpr double StepSizeMax=1024.0;
+	static constexpr int AnimationSpeedMin=0;
+	static constexpr int AnimationSpeedMax=255;
 	QTrajectoryPlanner(QObject *parent = nullptr);
 	void attachRobot(QRobot *robot);
 	void clear();
@@ -43,7 +45,7 @@ public:
 
 public slots:
 	void addPathSegment(const TrajectorySegment &segment);
-	void setAnimationSpeed(int speed);
+	void setAnimationSpeed(int animation_speed);
 	void startAnimation();
 
 signals:
