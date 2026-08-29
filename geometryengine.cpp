@@ -51,12 +51,6 @@ void GeometryEngine::updateBounds(const QVector3D &v)
 
 void GeometryEngine::loadModelFromStlFile(const QString &filename)
 {
-	arrayBuf.destroy();
-	geometryIBuf.destroy();
-
-	arrayBuf.create();
-	geometryIBuf.create();
-
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly))
 	{
@@ -141,8 +135,6 @@ void GeometryEngine::setTrajectoryColor(const QVector3D &trajectory_color)
 
 void GeometryEngine::setTrajectoryPoints(const QVector<QVector3D> &points)
 {
-	mTrajectoryVBuf.destroy();
-	mTrajectoryVBuf.create();
 	mTrajectoryVertexCount=points.size();
 	if (mTrajectoryVertexCount<1)
 	{

@@ -21,10 +21,9 @@ RobotViewWidget::~RobotViewWidget()
 
 void RobotViewWidget::attachRobot(QRobot *robot)
 {
-	if (nullptr!=mRobot)
+	if (mRobot)
 	{
 		QObject::disconnect(mRobot, nullptr, this, nullptr);
-		QObject::disconnect(this, nullptr, mRobot, nullptr);
 	}
 	mRobot=robot;
 	if (nullptr==robot)
@@ -36,6 +35,21 @@ void RobotViewWidget::attachRobot(QRobot *robot)
 	onRobotConfigurationChanged();
 }
 
+void RobotViewWidget::attachTrajectoryPlanner(QTrajectoryPlanner *trajectory_planner)
+{
+	if (mTrajectoryPlanner)
+	{
+		QObject::disconnect(mTrajectoryPlanner, nullptr, this, nullptr);
+	}
+	mTrajectoryPlanner=trajectory_planner;
+	if (nullptr==trajectory_planner)
+	{
+		return;
+	}
+	QObject::connect(mTrajectoryPlanner, &QTrajectoryPlanner::trajectoryChanged, this, &RobotViewWidget::onTrajectoryPlannerTrajectoryChanged);
+	onTrajectoryPlannerTrajectoryChanged();
+}
+
 void RobotViewWidget::onRobotConfigurationChanged()
 {
 	update();
@@ -44,6 +58,21 @@ void RobotViewWidget::onRobotConfigurationChanged()
 void RobotViewWidget::onRobotTargetPositionChanged()
 {
 	update();
+}
+
+void RobotViewWidget::onTrajectoryPlannerTrajectoryChanged()
+{
+	const QVector<TrajectorySegment> &trajectorySegments=mTrajectoryPlanner->getSegments();
+	if(trajectorySegments.size()<2)
+	{
+		return;
+	}
+	mTrajectoryPoints.clear();
+	mTrajectoryPoints.append(trajectorySegments.first().positionA);
+	for(const TrajectorySegment &segment : trajectorySegments)
+	{
+		mTrajectoryPoints.append(segment.positionB);
+	}
 }
 
 void RobotViewWidget::mousePressEvent(QMouseEvent *event)
@@ -191,7 +220,7 @@ void RobotViewWidget::paintGL()
 	{
 		return;
 	}
-	for (uint32_t i = 0; i < mRobot->numOfJoints; ++i)
+	for (uint32_t i=0; i<QRobot::numOfJoints; ++i)
 	{
 		QMatrix4x4 linkMatrix = viewMatrix * mRobot->getLinkMatrix(i);
 		mRobotShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * linkMatrix);
@@ -207,5 +236,6 @@ void RobotViewWidget::paintGL()
 		return;
 	}
 	mLineShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * viewMatrix);
+	mPathGeometry->setTrajectoryPoints(mTrajectoryPoints);
 	mPathGeometry->drawLineStrip(&mLineShaderProgram);
 }

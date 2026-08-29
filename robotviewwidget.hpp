@@ -6,6 +6,7 @@
 #include <QOpenGLShaderProgram>
 #include "geometryengine.hpp"
 #include "robot.hpp"
+#include "trajectoryplanner.hpp"
 
 namespace Ui
 {
@@ -18,8 +19,10 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 	QOpenGLShaderProgram mRobotShaderProgram;
 	QOpenGLShaderProgram mLineShaderProgram;
 	QVector <GeometryEngine *> mRobotGeometry;
+	QVector<QVector3D> mTrajectoryPoints;
 	GeometryEngine *mTargetGeometry, *mPathGeometry;
 	QRobot *mRobot=nullptr;
+	QTrajectoryPlanner *mTrajectoryPlanner=nullptr;
 	QMatrix4x4 projectionMatrix;
 	QVector2D mousePressPosition;
 	QVector3D rotationAxis;
@@ -33,6 +36,7 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 private slots:
 	void onRobotConfigurationChanged();
 	void onRobotTargetPositionChanged();
+	void onTrajectoryPlannerTrajectoryChanged();
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -48,6 +52,7 @@ public:
 	RobotViewWidget(QWidget *parent = nullptr);
 	~RobotViewWidget();
 	void attachRobot(QRobot *robot);
+	void attachTrajectoryPlanner(QTrajectoryPlanner *trajectory_planner);
 };
 
 #endif // ROBOTVIEWWIDGET_HPP

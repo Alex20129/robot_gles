@@ -19,13 +19,14 @@ int main(int argc, char *argv[])
 
 	QRobot *robot=new QRobot;
 	QTrajectoryPlanner *trajectoryPlanner=new QTrajectoryPlanner;
+	RobotViewWidget *rvWidget=new RobotViewWidget;
+
+	rvWidget->attachRobot(robot);
+	rvWidget->attachTrajectoryPlanner(trajectoryPlanner);
+
 	trajectoryPlanner->attachRobot(robot);
 	trajectoryPlanner->loadFromJsonFile("demo-path.json");
 	trajectoryPlanner->rebuildPoses();
-
-	RobotViewWidget *rvWidget=new RobotViewWidget;
-	rvWidget->resize(1024, 768);
-	rvWidget->attachRobot(robot);
 
 	ControlsWidget *cWidget=new ControlsWidget;
 	cWidget->attachRobot(robot);
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
 	QObject::connect(cWidget, &ControlsWidget::needToSetAnimationSpeed, trajectoryPlanner, &QTrajectoryPlanner::setAnimationSpeed);
 	QObject::connect(cWidget, &ControlsWidget::needToStartAnimation, trajectoryPlanner, &QTrajectoryPlanner::startAnimation);
 
+	rvWidget->resize(1024, 768);
 	rvWidget->show();
 	cWidget->show();
 
