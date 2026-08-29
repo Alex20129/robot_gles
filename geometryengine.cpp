@@ -12,23 +12,27 @@ struct VertexData
 
 GeometryEngine::GeometryEngine()
 {
-	indexBuf=QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
+	geometryIBuf=QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
+	mTrajectoryVBuf=QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 
 	minCoord=QVector3D( 1e9, 1e9, 1e9);
 	maxCoord=QVector3D(-1e9, -1e9, -1e9);
 
-	modelColor=QVector3D(1.0f, 1.0f, 1.0f);
-	lightColor=QVector3D(1.0f, 1.0f, 1.0f);
+	mModelColor=QVector3D(1.0f, 1.0f, 1.0f);
+	mLightColor=QVector3D(1.0f, 1.0f, 1.0f);
+	mTrajectoryColor=QVector3D(0.2f, 1.0f, 0.2f);
 
 	initializeOpenGLFunctions();
 	arrayBuf.create();
-	indexBuf.create();
+	geometryIBuf.create();
+	mTrajectoryVBuf.create();
 }
 
 GeometryEngine::~GeometryEngine()
 {
 	arrayBuf.destroy();
-	indexBuf.destroy();
+	geometryIBuf.destroy();
+	mTrajectoryVBuf.destroy();
 }
 
 void GeometryEngine::updateBounds(const QVector3D &v)
@@ -48,10 +52,10 @@ void GeometryEngine::updateBounds(const QVector3D &v)
 void GeometryEngine::loadModelFromStlFile(const QString &filename)
 {
 	arrayBuf.destroy();
-	indexBuf.destroy();
+	geometryIBuf.destroy();
 
 	arrayBuf.create();
-	indexBuf.create();
+	geometryIBuf.create();
 
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly))
@@ -116,43 +120,73 @@ void GeometryEngine::loadModelFromStlFile(const QString &filename)
 	arrayBuf.bind();
 	arrayBuf.allocate(vertices.constData(), vertexCount * sizeof(VertexData));
 
-	indexBuf.bind();
-	indexBuf.allocate(indices.constData(), indexCount * sizeof(quint32));
+	geometryIBuf.bind();
+	geometryIBuf.allocate(indices.constData(), indexCount * sizeof(quint32));
 }
 
 void GeometryEngine::setModelColor(const QVector3D &model_color)
 {
-	modelColor=model_color;
+	mModelColor=model_color;
 }
 
 void GeometryEngine::setLightColor(const QVector3D &light_color)
 {
-	lightColor=light_color;
+	mLightColor=light_color;
 }
 
-void GeometryEngine::drawGeometry(QOpenGLShaderProgram *program, const QMatrix4x4 &model_matrix)
+void GeometryEngine::setTrajectoryColor(const QVector3D &trajectory_color)
+{
+	mTrajectoryColor=trajectory_color;
+}
+
+void GeometryEngine::setTrajectoryPoints(const QVector<QVector3D> &points)
+{
+	mTrajectoryVBuf.destroy();
+	mTrajectoryVBuf.create();
+	mTrajectoryVertexCount=points.size();
+	if (mTrajectoryVertexCount<1)
+	{
+		return;
+	}
+	mTrajectoryVBuf.bind();
+	mTrajectoryVBuf.allocate(points.constData(), mTrajectoryVertexCount * sizeof(QVector3D));
+}
+
+void GeometryEngine::clearTrajectory()
+{
+	mTrajectoryVertexCount=0;
+}
+
+void GeometryEngine::drawTriangles(QOpenGLShaderProgram *program)
 {
 	arrayBuf.bind();
-	indexBuf.bind();
-
-	program->setUniformValue("model_matrix", model_matrix);
-	program->setUniformValue("normal_matrix", model_matrix.normalMatrix());
-
-	program->setUniformValue("u_materialColor",	modelColor);
+	geometryIBuf.bind();
+	program->setUniformValue("u_materialColor",	mModelColor);
 	program->setUniformValue("u_shininess", 64.0f);
 	program->setUniformValue("u_lightDirection", QVector3D(0.0f, 1.0f, 1.0f).normalized());
-	program->setUniformValue("u_lightColor", lightColor);
+	program->setUniformValue("u_lightColor", mLightColor);
 	program->setUniformValue("u_ambientStrength", 0.12f);
-
 	int vertexLocation=program->attributeLocation("a_position");
 	program->enableAttributeArray(vertexLocation);
 	program->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, 3, sizeof(VertexData));
-
 	int normalLocation=program->attributeLocation("a_normal");
 	program->enableAttributeArray(normalLocation);
 	program->setAttributeBuffer(normalLocation, GL_FLOAT, 3 * sizeof(float), 3, sizeof(VertexData));
-
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
+	program->disableAttributeArray(vertexLocation);
+	program->disableAttributeArray(normalLocation);
+}
+
+void GeometryEngine::drawLineStrip(QOpenGLShaderProgram *program)
+{
+	mTrajectoryVBuf.bind();
+	program->setUniformValue("u_color", mTrajectoryColor);
+	int positionLocation=program->attributeLocation("a_position");
+	program->enableAttributeArray(positionLocation);
+	program->setAttributeBuffer(positionLocation, GL_FLOAT, 0, 3, sizeof(QVector3D));
+	glLineWidth(3.0f);
+	glDrawArrays(GL_LINE_STRIP, 0, mTrajectoryVertexCount);
+	program->disableAttributeArray(positionLocation);
 }
 
 const QVector3D &GeometryEngine::center() const

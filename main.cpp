@@ -19,8 +19,9 @@ int main(int argc, char *argv[])
 
 	QRobot *robot=new QRobot;
 	QTrajectoryPlanner *trajectoryPlanner=new QTrajectoryPlanner;
-	trajectoryPlanner->loadFromJsonFile("demo-path.json");
 	trajectoryPlanner->attachRobot(robot);
+	trajectoryPlanner->loadFromJsonFile("demo-path.json");
+	trajectoryPlanner->rebuildPoses();
 
 	RobotViewWidget *rvWidget=new RobotViewWidget;
 	rvWidget->resize(1024, 768);

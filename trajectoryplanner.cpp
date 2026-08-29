@@ -38,13 +38,6 @@ void QTrajectoryPlanner::attachRobot(QRobot *robot)
 		return;
 	}
 	QObject::connect(this, &QTrajectoryPlanner::needToSetPose, mRobot, &QRobot::setPose);
-	rebuildPoses();
-}
-
-void QTrajectoryPlanner::clear()
-{
-	mSegments.clear();
-	mPoses.clear();
 }
 
 void QTrajectoryPlanner::rebuildPoses()
@@ -118,8 +111,19 @@ void QTrajectoryPlanner::rebuildPoses()
 	}
 }
 
+void QTrajectoryPlanner::clear()
+{
+	mPoses.clear();
+	if(mSegments.size())
+	{
+		mSegments.clear();
+		emit trajectoryChanged();
+	}
+}
+
 bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 {
+	clear();
 	QFile jsonFile(file);
 	if (!jsonFile.open(QIODevice::ReadOnly))
 	{
@@ -217,9 +221,9 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 				segment.orientationC.setZ(cPointJsonArray.at(5).toDouble());
 			}
 		}
-		addPathSegment(segment);
+		mSegments.push_back(segment);
 	}
-	rebuildPoses();
+	emit trajectoryChanged();
 	return (true);
 }
 
@@ -242,14 +246,20 @@ void QTrajectoryPlanner::setStepSize(double step_size)
 	mStepSize=step_size;
 }
 
+const QVector<TrajectorySegment> &QTrajectoryPlanner::getSegments() const
+{
+	return (mSegments);
+}
+
 const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
 {
 	return (mPoses);
 }
 
-void QTrajectoryPlanner::addPathSegment(const TrajectorySegment &segment)
+void QTrajectoryPlanner::addSegment(const TrajectorySegment &segment)
 {
 	mSegments.push_back(segment);
+	emit trajectoryChanged();
 }
 
 void QTrajectoryPlanner::setAnimationSpeed(int animation_speed)

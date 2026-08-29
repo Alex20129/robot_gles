@@ -8,12 +8,15 @@
 class GeometryEngine : protected QOpenGLFunctions
 {
 	QOpenGLBuffer arrayBuf;
-	QOpenGLBuffer indexBuf;
+	QOpenGLBuffer geometryIBuf;
+	QOpenGLBuffer mTrajectoryVBuf;
 	QVector3D minCoord, maxCoord;
 	QVector3D sizeVec, centerVec;
-	QVector3D modelColor, lightColor;
+	QVector3D mModelColor, mLightColor;
+	QVector3D mTrajectoryColor;
 	int vertexCount=0;
 	int indexCount=0;
+	int mTrajectoryVertexCount=0;
 	void updateBounds(const QVector3D &v);
 public:
 	void loadModelFromStlFile(const QString &filename);
@@ -21,7 +24,11 @@ public:
 	virtual ~GeometryEngine();
 	void setModelColor(const QVector3D &model_color);
 	void setLightColor(const QVector3D &light_color);
-	void drawGeometry(QOpenGLShaderProgram *program, const QMatrix4x4 &model_matrix);
+	void setTrajectoryColor(const QVector3D &trajectory_color);
+	void setTrajectoryPoints(const QVector<QVector3D> &points);
+	void clearTrajectory();
+	void drawTriangles(QOpenGLShaderProgram *program);
+	void drawLineStrip(QOpenGLShaderProgram *program);
 	const QVector3D &center() const;
 	const QVector3D &size() const;
 };

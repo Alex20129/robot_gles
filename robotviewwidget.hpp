@@ -15,8 +15,10 @@ namespace Ui
 class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
 	Q_OBJECT
-	QOpenGLShaderProgram program;
-	QVector <GeometryEngine *> mModelGeometry;
+	QOpenGLShaderProgram mRobotShaderProgram;
+	QOpenGLShaderProgram mLineShaderProgram;
+	QVector <GeometryEngine *> mRobotGeometry;
+	GeometryEngine *mTargetGeometry, *mPathGeometry;
 	QRobot *mRobot=nullptr;
 	QMatrix4x4 projectionMatrix;
 	QVector2D mousePressPosition;

@@ -28,7 +28,6 @@ class QTrajectoryPlanner : public QObject
 	int mAnimationProgress=0;
 	int mAnimationFrameInterval=50;
 	void timerEvent(QTimerEvent *event) override;
-	void rebuildPoses();
 
 public:
 	static constexpr double StepSizeMin=1.0/1024.0;
@@ -37,18 +36,21 @@ public:
 	static constexpr int AnimationSpeedMax=255;
 	QTrajectoryPlanner(QObject *parent = nullptr);
 	void attachRobot(QRobot *robot);
+	void rebuildPoses();
 	void clear();
 	bool loadFromJsonFile(const QString &file);
 	bool saveToJsonFile(const QString &file);
 	void setStepSize(double step_size);
+	const QVector<TrajectorySegment> &getSegments() const;
 	const QVector<QRobot::Pose> &getPoses() const;
 
 public slots:
-	void addPathSegment(const TrajectorySegment &segment);
+	void addSegment(const TrajectorySegment &segment);
 	void setAnimationSpeed(int animation_speed);
 	void startAnimation();
 
 signals:
+	void trajectoryChanged();
 	void planningFinished(int totalPoints, int failedPoints);
 	void planningError(const QString &message);
 	void needToSetPose(const QRobot::Pose &pose);

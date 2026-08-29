@@ -12,7 +12,9 @@ RobotViewWidget::RobotViewWidget(QWidget *parent) : QOpenGLWidget(parent)
 RobotViewWidget::~RobotViewWidget()
 {
 	makeCurrent();
-	qDeleteAll(mModelGeometry);
+	delete mPathGeometry;
+	delete mTargetGeometry;
+	qDeleteAll(mRobotGeometry);
 	doneCurrent();
 	delete ui;
 }
@@ -97,7 +99,14 @@ void RobotViewWidget::wheelEvent(QWheelEvent *event)
 
 void RobotViewWidget::initializeGL()
 {
-	static const QStringList mSTLFiles=
+	for (uint32_t modelID=0; modelID<QRobot::numOfJoints; modelID++)
+	{
+		GeometryEngine *newModelGeometry=new GeometryEngine;
+		mRobotGeometry.append(newModelGeometry);
+	}
+	mTargetGeometry=new GeometryEngine;
+	mPathGeometry=new GeometryEngine;
+	static const QStringList robotSTLFiles=
 	{
 		QString("robot_00.stl"),
 		QString("robot_01.stl"),
@@ -105,7 +114,6 @@ void RobotViewWidget::initializeGL()
 		QString("robot_03.stl"),
 		QString("robot_04.stl"),
 		QString("robot_05.stl"),
-		QString("target.stl"),
 	};
 	static const QVector<QVector3D> mColors=
 	{
@@ -115,15 +123,15 @@ void RobotViewWidget::initializeGL()
 		QVector3D(0.75f, 0.95f, 0.95f),
 		QVector3D(0.75f, 0.95f, 0.95f),
 		QVector3D(0.75f, 0.95f, 0.95f),
-		QVector3D(0.97f, 0.21f, 0.21f),
 	};
-	for (int modelID=0; modelID<mSTLFiles.size(); modelID++)
+	for (int modelID=0; modelID<robotSTLFiles.size(); modelID++)
 	{
-		GeometryEngine *newModelGeometry=new GeometryEngine;
-		newModelGeometry->loadModelFromStlFile(mSTLFiles.at(modelID));
-		newModelGeometry->setModelColor(mColors.at(modelID));
-		mModelGeometry.append(newModelGeometry);
+		mRobotGeometry.at(modelID)->loadModelFromStlFile(robotSTLFiles.at(modelID));
+		mRobotGeometry.at(modelID)->setModelColor(mColors.at(modelID));
 	}
+	mTargetGeometry->setModelColor({0.97f, 0.21f, 0.21f});
+	mTargetGeometry->loadModelFromStlFile("target.stl");
+	mPathGeometry->setTrajectoryColor({0.2f, 1.0f, 0.2f});
 	initializeOpenGLFunctions();
 	initShaders();
 	glEnable(GL_DEPTH_TEST);
@@ -133,19 +141,27 @@ void RobotViewWidget::initializeGL()
 
 void RobotViewWidget::initShaders()
 {
-	if (!program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
+	if (!mRobotShaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/robotvshader.glsl"))
 	{
 		close();
 	}
-	if (!program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
+	if (!mRobotShaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/robotfshader.glsl"))
 	{
 		close();
 	}
-	if (!program.link())
+	if (!mRobotShaderProgram.link())
 	{
 		close();
 	}
-	if (!program.bind())
+	if (!mLineShaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/linevshader.glsl"))
+	{
+		close();
+	}
+	if (!mLineShaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/linefshader.glsl"))
+	{
+		close();
+	}
+	if (!mLineShaderProgram.link())
 	{
 		close();
 	}
@@ -168,23 +184,28 @@ void RobotViewWidget::paintGL()
 	{
 		return;
 	}
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	QMatrix4x4 view;
-	view.translate(0, 0, mZoom);
-	view.rotate(mCameraRotationQ);
-
-	size_t i;
-	for (i = 0; i < mRobot->numOfJoints; ++i)
+	QMatrix4x4 viewMatrix;
+	viewMatrix.translate(0, 0, mZoom);
+	viewMatrix.rotate(mCameraRotationQ);
+	if (!mRobotShaderProgram.bind())
 	{
-		QMatrix4x4 linkMatrix = view * mRobot->getLinkMatrix(i);
-		QMatrix4x4 mvp = projectionMatrix * linkMatrix;
-		program.setUniformValue("mvp_matrix", mvp);
-		mModelGeometry.at(i)->drawGeometry(&program, linkMatrix);
+		return;
 	}
-
-	QMatrix4x4 targetMatrix = view * mRobot->getTargetMatrix();
-	QMatrix4x4 mvp = projectionMatrix * targetMatrix;
-	program.setUniformValue("mvp_matrix", mvp);
-	mModelGeometry.at(i)->drawGeometry(&program, targetMatrix);
+	for (uint32_t i = 0; i < mRobot->numOfJoints; ++i)
+	{
+		QMatrix4x4 linkMatrix = viewMatrix * mRobot->getLinkMatrix(i);
+		mRobotShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * linkMatrix);
+		mRobotShaderProgram.setUniformValue("normal_matrix", linkMatrix.normalMatrix());
+		mRobotGeometry.at(i)->drawTriangles(&mRobotShaderProgram);
+	}
+	QMatrix4x4 targetMatrix = viewMatrix * mRobot->getTargetMatrix();
+	mRobotShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * targetMatrix);
+	mRobotShaderProgram.setUniformValue("normal_matrix", targetMatrix.normalMatrix());
+	mTargetGeometry->drawTriangles(&mRobotShaderProgram);
+	if (!mLineShaderProgram.bind())
+	{
+		return;
+	}
+	mLineShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * viewMatrix);
+	mPathGeometry->drawLineStrip(&mLineShaderProgram);
 }
