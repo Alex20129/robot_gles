@@ -20,24 +20,30 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 	QOpenGLShaderProgram mLineShaderProgram;
 	QVector <GeometryEngine *> mRobotGeometry;
 	QVector<QVector3D> mTrajectoryPoints;
-	GeometryEngine *mTargetGeometry, *mPathGeometry;
+	GeometryEngine *mTargetGeometry;
+	GeometryEngine *mTooltipPathGeometry, *mWristPathGeometry;
 	QRobot *mRobot=nullptr;
 	QTrajectoryPlanner *mTrajectoryPlanner=nullptr;
 	QMatrix4x4 projectionMatrix;
 	QMatrix4x4 viewMatrix;
 	QVector2D mousePressPosition;
 	QVector3D rotationAxis;
-	qreal mZoom=-400.0;
-	bool cameraRotation = false;
+	float mCameraShiftZ=-400.0;
+	float mCameraShiftX=0.0;
+	float mCameraShiftY=0.0;
+	bool mCameraRotation = false;
+	bool mCameraShifting = false;
 	QQuaternion mCameraRotationQ;
 	float mCameraPitch=0;
 	float mCameraYaw=0;
+	float mCameraSensitivity=0.2;
 	Ui::RobotViewWidget *ui;
 	void updateViewMatrix();
 
 private slots:
 	void onRobotConfigurationChanged();
 	void onTrajectoryPlannerTrajectoryChanged();
+	void onTrajectoryPlannerPlanningFinished();
 
 protected:
 	void mousePressEvent(QMouseEvent *event) override;
@@ -54,6 +60,7 @@ public:
 	~RobotViewWidget();
 	void attachRobot(QRobot *robot);
 	void attachTrajectoryPlanner(QTrajectoryPlanner *trajectory_planner);
+	void setCameraSensitivity(float camera_sensitivity);
 };
 
 #endif // ROBOTVIEWWIDGET_HPP

@@ -12,7 +12,8 @@ RobotViewWidget::RobotViewWidget(QWidget *parent) : QOpenGLWidget(parent)
 RobotViewWidget::~RobotViewWidget()
 {
 	makeCurrent();
-	delete mPathGeometry;
+	delete mWristPathGeometry;
+	delete mTooltipPathGeometry;
 	delete mTargetGeometry;
 	qDeleteAll(mRobotGeometry);
 	doneCurrent();
@@ -45,6 +46,12 @@ void RobotViewWidget::attachTrajectoryPlanner(QTrajectoryPlanner *trajectory_pla
 		return;
 	}
 	QObject::connect(mTrajectoryPlanner, &QTrajectoryPlanner::trajectoryChanged, this, &RobotViewWidget::onTrajectoryPlannerTrajectoryChanged);
+	QObject::connect(mTrajectoryPlanner, &QTrajectoryPlanner::planningFinished, this, &RobotViewWidget::onTrajectoryPlannerPlanningFinished);
+}
+
+void RobotViewWidget::setCameraSensitivity(float camera_sensitivity)
+{
+	mCameraSensitivity=camera_sensitivity;
 }
 
 void RobotViewWidget::onRobotConfigurationChanged()
@@ -54,6 +61,10 @@ void RobotViewWidget::onRobotConfigurationChanged()
 
 void RobotViewWidget::onTrajectoryPlannerTrajectoryChanged()
 {
+	if(nullptr==mTrajectoryPlanner)
+	{
+		return;
+	}
 	const QVector<TrajectorySegment> &trajectorySegments=mTrajectoryPlanner->getSegments();
 	mTrajectoryPoints.clear();
 	if(trajectorySegments.size()<2)
@@ -65,13 +76,22 @@ void RobotViewWidget::onTrajectoryPlannerTrajectoryChanged()
 	{
 		mTrajectoryPoints.append(segment.positionB);
 	}
-	mPathGeometry->setTrajectoryPoints(mTrajectoryPoints);
+	mWristPathGeometry->setTrajectoryPoints(mTrajectoryPoints);
+}
+
+void RobotViewWidget::onTrajectoryPlannerPlanningFinished()
+{
+	if(nullptr==mTrajectoryPlanner)
+	{
+		return;
+	}
+	mTooltipPathGeometry->setTrajectoryPoints(mTrajectoryPlanner->GetTooltipPath());
 }
 
 void RobotViewWidget::updateViewMatrix()
 {
 	viewMatrix.setToIdentity();
-	viewMatrix.translate(0, 0, mZoom);
+	viewMatrix.translate(mCameraShiftX, mCameraShiftY, mCameraShiftZ);
 	viewMatrix.rotate(mCameraRotationQ);
 }
 
@@ -79,37 +99,54 @@ void RobotViewWidget::mousePressEvent(QMouseEvent *event)
 {
 	event->accept();
 	mousePressPosition = QVector2D(event->localPos());
-	cameraRotation=true;
+	if (event->button() == Qt::MiddleButton)
+	{
+		mCameraShifting = true;
+	}
+	else
+	{
+		mCameraRotation = true;
+	}
 }
 
 void RobotViewWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	if (!cameraRotation)
-	{
-		return;
-	}
 	event->accept();
-	const float sensitivity = 0.25f;
 	QVector2D currentPos = QVector2D(event->localPos());
-	QVector2D delta = currentPos - mousePressPosition;
+	QVector2D delta = (currentPos - mousePressPosition) * mCameraSensitivity;
 	mousePressPosition = currentPos;
-	float pitchCorrection = delta.y() * sensitivity;
-	float yawCorrection = delta.x() * sensitivity;
-	mCameraPitch+=pitchCorrection;
-	mCameraYaw+=yawCorrection;
-	QQuaternion pitchQ = QQuaternion::fromAxisAndAngle(1, 0, 0, mCameraPitch);
-	QQuaternion yawQ = QQuaternion::fromAxisAndAngle(0, 1, 0, mCameraYaw);
-	mCameraRotationQ = QQuaternion::fromAxisAndAngle(1, 0, 0, -90.0);
-	mCameraRotationQ = yawQ * mCameraRotationQ;
-	mCameraRotationQ = pitchQ * mCameraRotationQ;
-	updateViewMatrix();
-	update();
+	if (mCameraRotation)
+	{
+		mCameraYaw += delta.x();
+		mCameraPitch += delta.y();
+		QQuaternion pitchQ = QQuaternion::fromAxisAndAngle(1, 0, 0, mCameraPitch);
+		QQuaternion yawQ = QQuaternion::fromAxisAndAngle(0, 1, 0, mCameraYaw);
+		mCameraRotationQ = QQuaternion::fromAxisAndAngle(1, 0, 0, -90.0);
+		mCameraRotationQ = yawQ * mCameraRotationQ;
+		mCameraRotationQ = pitchQ * mCameraRotationQ;
+		updateViewMatrix();
+		update();
+	}
+	else if(mCameraShifting)
+	{
+		mCameraShiftX += delta.x();
+		mCameraShiftY -= delta.y();
+		updateViewMatrix();
+		update();
+	}
 }
 
 void RobotViewWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	event->accept();
-	cameraRotation=false;
+	if (event->button() == Qt::MiddleButton)
+	{
+		mCameraShifting = false;
+	}
+	else
+	{
+		mCameraRotation = false;
+	}
 }
 
 void RobotViewWidget::wheelEvent(QWheelEvent *event)
@@ -118,11 +155,11 @@ void RobotViewWidget::wheelEvent(QWheelEvent *event)
 	qreal zShiftCorrection=5.25;
 	if (event->angleDelta().ry()>0)
 	{
-		mZoom+=zShiftCorrection;
+		mCameraShiftZ+=zShiftCorrection;
 	}
 	else
 	{
-		mZoom-=zShiftCorrection;
+		mCameraShiftZ-=zShiftCorrection;
 	}
 	updateViewMatrix();
 	update();
@@ -136,7 +173,8 @@ void RobotViewWidget::initializeGL()
 		mRobotGeometry.append(newModelGeometry);
 	}
 	mTargetGeometry=new GeometryEngine;
-	mPathGeometry=new GeometryEngine;
+	mWristPathGeometry=new GeometryEngine;
+	mTooltipPathGeometry=new GeometryEngine;
 	static const QStringList robotSTLFiles=
 	{
 		QString("robot_00.stl"),
@@ -162,12 +200,14 @@ void RobotViewWidget::initializeGL()
 	}
 	mTargetGeometry->setModelColor({0.97f, 0.21f, 0.21f});
 	mTargetGeometry->loadModelFromStlFile("target.stl");
-	mPathGeometry->setTrajectoryColor({0.2f, 1.0f, 0.2f});
+	mWristPathGeometry->setTrajectoryColor({0.2f, 1.0f, 0.2f});
+	mTooltipPathGeometry->setTrajectoryColor({0.2f, 0.2f, 1.0f});
 	initializeOpenGLFunctions();
 	initShaders();
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
+	updateViewMatrix();
 }
 
 void RobotViewWidget::initShaders()
@@ -205,7 +245,7 @@ void RobotViewWidget::resizeGL(int w, int h)
 	// Reset projection
 	projectionMatrix.setToIdentity();
 	// Set perspective projection
-	float zNear = 10.0, zFar = 1200.0;
+	float zNear = 10.0, zFar = 1600.0;
 	projectionMatrix.perspective(fov, aspect, zNear, zFar);
 }
 
@@ -215,6 +255,7 @@ void RobotViewWidget::paintGL()
 	{
 		return;
 	}
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	if (!mRobotShaderProgram.bind())
 	{
 		return;
@@ -235,5 +276,6 @@ void RobotViewWidget::paintGL()
 		return;
 	}
 	mLineShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * viewMatrix);
-	mPathGeometry->drawLineStrip(&mLineShaderProgram);
+	mWristPathGeometry->drawLineStrip(&mLineShaderProgram);
+	mTooltipPathGeometry->drawLineStrip(&mLineShaderProgram);
 }

@@ -43,7 +43,7 @@ void QTrajectoryPlanner::attachRobot(QRobot *robot)
 void QTrajectoryPlanner::rebuildPoses()
 {
 	mPoses.clear();
-	mTTPath.clear();
+	mTooltipPath.clear();
 	if(nullptr==mRobot)
 	{
 		return;
@@ -71,7 +71,7 @@ void QTrajectoryPlanner::rebuildPoses()
 					// TODO: handle unsolved orientation cases
 					double OrientationError=mRobot->solveIkForOrientation(QQuaternion::slerp(quOrientationA, quOrientationB, t));
 					mPoses.push_back(mRobot->getPose());
-					mTTPath.push_back(mRobot->getTooltipPosition());
+					mTooltipPath.push_back(mRobot->getTooltipPosition());
 				}
 				break;
 			}
@@ -110,14 +110,15 @@ void QTrajectoryPlanner::rebuildPoses()
 		mRobot->solveIkForPosition(lastSegment.positionB);
 		mRobot->solveIkForOrientation(QQuaternion::fromEulerAngles(lastSegment.orientationB));
 		mPoses.push_back(mRobot->getPose());
-		mTTPath.push_back(mRobot->getTooltipPosition());
+		mTooltipPath.push_back(mRobot->getTooltipPosition());
 	}
+	emit planningFinished();
 }
 
 void QTrajectoryPlanner::clear()
 {
 	mPoses.clear();
-	mTTPath.clear();
+	mTooltipPath.clear();
 	if(mSegments.size())
 	{
 		mSegments.clear();
@@ -258,6 +259,11 @@ const QVector<TrajectorySegment> &QTrajectoryPlanner::getSegments() const
 const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
 {
 	return (mPoses);
+}
+
+const QVector<QVector3D> &QTrajectoryPlanner::GetTooltipPath() const
+{
+	return (mTooltipPath);
 }
 
 void QTrajectoryPlanner::addSegment(const TrajectorySegment &segment)
