@@ -23,6 +23,7 @@ class QTrajectoryPlanner : public QObject
 	QBasicTimer mAnimationTimer;
 	QVector<TrajectorySegment> mSegments;
 	QVector<QRobot::Pose> mPoses;
+	QVector<QVector3D> mWristPath;
 	QVector<QVector3D> mTooltipPath;
 	QRobot *mRobot=nullptr;
 	double mStepSize=0.25; // mm
@@ -44,12 +45,14 @@ public:
 	void setStepSize(double step_size);
 	const QVector<TrajectorySegment> &getSegments() const;
 	const QVector<QRobot::Pose> &getPoses() const;
-	const QVector<QVector3D> &GetTooltipPath() const;
+	const QVector<QVector3D> &getWristPath() const;
+	const QVector<QVector3D> &getTooltipPath() const;
 
 public slots:
 	void addSegment(const TrajectorySegment &segment);
 	void setAnimationSpeed(int animation_speed);
 	void startAnimation();
+	void stopAnimation();
 
 signals:
 	void trajectoryChanged();

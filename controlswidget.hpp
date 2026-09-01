@@ -34,13 +34,14 @@ private slots:
 	void onJ4ControlValueChanged(int value);
 	void onJ5ControlValueChanged(int value);
 	void on_pushButton_start_animation_clicked();
+	void on_pushButton_stop_animation_clicked();
+	void on_animationSpeedSlider_valueChanged(int value);
 	void on_lineEdit_target_x_textChanged(const QString &arg1);
 	void on_lineEdit_target_y_textChanged(const QString &arg1);
 	void on_lineEdit_target_z_textChanged(const QString &arg1);
 	void on_lineEdit_target_pitch_textEdited(const QString &arg1);
 	void on_lineEdit_target_yaw_textEdited(const QString &arg1);
 	void on_lineEdit_target_roll_textEdited(const QString &arg1);
-	void on_animationSpeedSlider_valueChanged(int value);
 
 public:
 	explicit ControlsWidget(QWidget *parent = nullptr);
@@ -53,6 +54,7 @@ signals:
 	void needToSetTargetOrientation(float pitch, float yaw, float roll);
 	void needToSetAnimationSpeed(int speed);
 	void needToStartAnimation();
+	void needToStopAnimation();
 };
 
 #endif // CONTROLSWIDGET_HPP

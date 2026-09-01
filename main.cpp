@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 
 	QObject::connect(cWidget, &ControlsWidget::needToSetAnimationSpeed, trajectoryPlanner, &QTrajectoryPlanner::setAnimationSpeed);
 	QObject::connect(cWidget, &ControlsWidget::needToStartAnimation, trajectoryPlanner, &QTrajectoryPlanner::startAnimation);
+	QObject::connect(cWidget, &ControlsWidget::needToStopAnimation, trajectoryPlanner, &QTrajectoryPlanner::stopAnimation);
 
 	rvWidget->resize(1024, 768);
 	rvWidget->show();

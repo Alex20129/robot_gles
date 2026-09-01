@@ -45,7 +45,7 @@ void RobotViewWidget::attachTrajectoryPlanner(QTrajectoryPlanner *trajectory_pla
 	{
 		return;
 	}
-	QObject::connect(mTrajectoryPlanner, &QTrajectoryPlanner::trajectoryChanged, this, &RobotViewWidget::onTrajectoryPlannerTrajectoryChanged);
+	// QObject::connect(mTrajectoryPlanner, &QTrajectoryPlanner::trajectoryChanged, this, &RobotViewWidget::onTrajectoryPlannerTrajectoryChanged);
 	QObject::connect(mTrajectoryPlanner, &QTrajectoryPlanner::planningFinished, this, &RobotViewWidget::onTrajectoryPlannerPlanningFinished);
 }
 
@@ -59,25 +59,24 @@ void RobotViewWidget::onRobotConfigurationChanged()
 	update();
 }
 
-void RobotViewWidget::onTrajectoryPlannerTrajectoryChanged()
-{
-	if(nullptr==mTrajectoryPlanner)
-	{
-		return;
-	}
-	const QVector<TrajectorySegment> &trajectorySegments=mTrajectoryPlanner->getSegments();
-	mTrajectoryPoints.clear();
-	if(trajectorySegments.size()<2)
-	{
-		return;
-	}
-	mTrajectoryPoints.append(trajectorySegments.first().positionA);
-	for(const TrajectorySegment &segment : trajectorySegments)
-	{
-		mTrajectoryPoints.append(segment.positionB);
-	}
-	mWristPathGeometry->setTrajectoryPoints(mTrajectoryPoints);
-}
+// void RobotViewWidget::onTrajectoryPlannerTrajectoryChanged()
+// {
+// 	if(nullptr==mTrajectoryPlanner)
+// 	{
+// 		return;
+// 	}
+// 	const QVector<TrajectorySegment> &trajectorySegments=mTrajectoryPlanner->getSegments();
+// 	mTrajectoryPoints.clear();
+// 	if(trajectorySegments.size()<2)
+// 	{
+// 		return;
+// 	}
+// 	mTrajectoryPoints.append(trajectorySegments.first().positionA);
+// 	for(const TrajectorySegment &segment : trajectorySegments)
+// 	{
+// 		mTrajectoryPoints.append(segment.positionB);
+// 	}
+// }
 
 void RobotViewWidget::onTrajectoryPlannerPlanningFinished()
 {
@@ -85,7 +84,8 @@ void RobotViewWidget::onTrajectoryPlannerPlanningFinished()
 	{
 		return;
 	}
-	mTooltipPathGeometry->setTrajectoryPoints(mTrajectoryPlanner->GetTooltipPath());
+	mWristPathGeometry->setTrajectoryPoints(mTrajectoryPlanner->getWristPath());
+	mTooltipPathGeometry->setTrajectoryPoints(mTrajectoryPlanner->getTooltipPath());
 }
 
 void RobotViewWidget::updateViewMatrix()

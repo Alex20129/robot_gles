@@ -10,15 +10,15 @@ void QTrajectoryPlanner::timerEvent(QTimerEvent *event)
 	event->accept();
 	if (mAnimationProgress<mPoses.size())
 	{
-		mAnimationTimer.start(mAnimationFrameInterval, this);
 		emit needToSetPose(mPoses[mAnimationProgress]);
+		mAnimationProgress++;
 	}
 	else
 	{
 		mAnimationTimer.stop();
+		mAnimationProgress=0;
 		emit animationFinished();
 	}
-	mAnimationProgress++;
 }
 
 QTrajectoryPlanner::QTrajectoryPlanner(QObject *parent) : QObject(parent)
@@ -43,6 +43,7 @@ void QTrajectoryPlanner::attachRobot(QRobot *robot)
 void QTrajectoryPlanner::rebuildPoses()
 {
 	mPoses.clear();
+	mWristPath.clear();
 	mTooltipPath.clear();
 	if(nullptr==mRobot)
 	{
@@ -71,6 +72,7 @@ void QTrajectoryPlanner::rebuildPoses()
 					// TODO: handle unsolved orientation cases
 					double OrientationError=mRobot->solveIkForOrientation(QQuaternion::slerp(quOrientationA, quOrientationB, t));
 					mPoses.push_back(mRobot->getPose());
+					mWristPath.push_back(mRobot->getWristPosition());
 					mTooltipPath.push_back(mRobot->getTooltipPosition());
 				}
 				break;
@@ -110,6 +112,7 @@ void QTrajectoryPlanner::rebuildPoses()
 		mRobot->solveIkForPosition(lastSegment.positionB);
 		mRobot->solveIkForOrientation(QQuaternion::fromEulerAngles(lastSegment.orientationB));
 		mPoses.push_back(mRobot->getPose());
+		mWristPath.push_back(mRobot->getWristPosition());
 		mTooltipPath.push_back(mRobot->getTooltipPosition());
 	}
 	emit planningFinished();
@@ -118,6 +121,7 @@ void QTrajectoryPlanner::rebuildPoses()
 void QTrajectoryPlanner::clear()
 {
 	mPoses.clear();
+	mWristPath.clear();
 	mTooltipPath.clear();
 	if(mSegments.size())
 	{
@@ -261,7 +265,12 @@ const QVector<QRobot::Pose> &QTrajectoryPlanner::getPoses() const
 	return (mPoses);
 }
 
-const QVector<QVector3D> &QTrajectoryPlanner::GetTooltipPath() const
+const QVector<QVector3D> &QTrajectoryPlanner::getWristPath() const
+{
+	return (mWristPath);
+}
+
+const QVector<QVector3D> &QTrajectoryPlanner::getTooltipPath() const
 {
 	return (mTooltipPath);
 }
@@ -284,10 +293,26 @@ void QTrajectoryPlanner::setAnimationSpeed(int animation_speed)
 	}
 	int newFrameInterval=(QTrajectoryPlanner::AnimationSpeedMax+1)-animation_speed;
 	mAnimationFrameInterval=newFrameInterval;
+	if(mAnimationTimer.isActive())
+	{
+		mAnimationTimer.start(newFrameInterval, this);
+	}
 }
 
 void QTrajectoryPlanner::startAnimation()
 {
-	mAnimationProgress=0;
+	if(mAnimationTimer.isActive())
+	{
+		return;
+	}
 	mAnimationTimer.start(mAnimationFrameInterval, this);
+}
+
+void QTrajectoryPlanner::stopAnimation()
+{
+	if(!mAnimationTimer.isActive())
+	{
+		return;
+	}
+	mAnimationTimer.stop();
 }

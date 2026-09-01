@@ -42,7 +42,7 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 
 private slots:
 	void onRobotConfigurationChanged();
-	void onTrajectoryPlannerTrajectoryChanged();
+	// void onTrajectoryPlannerTrajectoryChanged();
 	void onTrajectoryPlannerPlanningFinished();
 
 protected:

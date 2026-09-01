@@ -31,8 +31,6 @@ void ControlsWidget::attachRobot(QRobot *robot)
 	}
 	mRobot=robot;
 	QObject::connect(this, &ControlsWidget::jointControlValueChanged, mRobot, &QRobot::setJointAngle);
-	// QObject::connect(this, &ControlsWidget::needToSetTargetPosition, mRobot, &QRobot::setTargetPosition);
-	// QObject::connect(this, &ControlsWidget::needToSetTargetOrientation, mRobot, &QRobot::setTargetOrientation);
 	QObject::connect(mRobot, &QRobot::configurationChanged, this, &ControlsWidget::onRobotConfigurationChanged);
 	ui->horizontalScrollBar_J0->setMinimum(mRobot->getJointLimits(0).first*controlsMultiplicator);
 	ui->horizontalScrollBar_J0->setMaximum(mRobot->getJointLimits(0).second*controlsMultiplicator);
@@ -46,7 +44,6 @@ void ControlsWidget::attachRobot(QRobot *robot)
 	ui->horizontalScrollBar_J4->setMaximum(mRobot->getJointLimits(4).second*controlsMultiplicator);
 	ui->horizontalScrollBar_J5->setMinimum(mRobot->getJointLimits(5).first*controlsMultiplicator);
 	ui->horizontalScrollBar_J5->setMaximum(mRobot->getJointLimits(5).second*controlsMultiplicator);
-	onRobotConfigurationChanged();
 }
 
 void ControlsWidget::onRobotConfigurationChanged()
@@ -162,6 +159,24 @@ void ControlsWidget::on_pushButton_start_animation_clicked()
 	emit needToStartAnimation();
 }
 
+void ControlsWidget::on_pushButton_stop_animation_clicked()
+{
+	if (mMuteControls)
+	{
+		return;
+	}
+	emit needToStopAnimation();
+}
+
+void ControlsWidget::on_animationSpeedSlider_valueChanged(int value)
+{
+	if (mMuteControls)
+	{
+		return;
+	}
+	emit needToSetAnimationSpeed(value);
+}
+
 void ControlsWidget::on_lineEdit_target_x_textChanged(const QString &arg1)
 {
 	if (mMuteControls)
@@ -221,9 +236,3 @@ void ControlsWidget::on_lineEdit_target_roll_textEdited(const QString &arg1)
 	mTargetOrientationRoll=arg1.toFloat();
 	emit needToSetTargetOrientation(mTargetOrientationPitch, mTargetOrientationYaw, mTargetOrientationRoll);
 }
-
-void ControlsWidget::on_animationSpeedSlider_valueChanged(int value)
-{
-	emit needToSetAnimationSpeed(value);
-}
-
