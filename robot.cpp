@@ -81,16 +81,6 @@ void QRobot::recalculateLinkMatrices(uint32_t from)
 	}
 }
 
-void QRobot::recalculateTargetMatrix()
-{
-	mTargetMatrix.setToIdentity();
-	mTargetMatrix.translate(
-		mTargetPosition.x(),
-		mTargetPosition.y(),
-		mTargetPosition.z());
-	mTargetMatrix.rotate(mTargetOrientation);
-}
-
 void QRobot::setJointLimits(uint32_t joint_index, double min_deg, double max_deg)
 {
 	if (joint_index >= numOfJoints)
@@ -250,28 +240,6 @@ void QRobot::setPose(const Pose &pose)
 	}
 }
 
-void QRobot::setTargetPosition(float x, float y, float z)
-{
-	QVector3D newTargetPosition(x, y, z);
-	if (mTargetPosition!=newTargetPosition)
-	{
-		mTargetPosition=newTargetPosition;
-		recalculateTargetMatrix();
-		emit targetPositionChanged();
-	}
-}
-
-void QRobot::setTargetOrientation(float pitch, float yaw, float roll)
-{
-	QQuaternion newTargetOrientation=QQuaternion::fromEulerAngles(pitch, yaw, roll).normalized();
-	if (mTargetOrientation!=newTargetOrientation)
-	{
-		mTargetOrientation=newTargetOrientation;
-		recalculateTargetMatrix();
-		emit targetPositionChanged();
-	}
-}
-
 double QRobot::getJointAngle(uint32_t joint_index) const
 {
 	if (joint_index >= numOfJoints)
@@ -304,11 +272,6 @@ const QMatrix4x4 &QRobot::getLinkMatrix(uint32_t link_index) const
 	return (mLinkMatrices[link_index]);
 }
 
-const QMatrix4x4 &QRobot::getTargetMatrix() const
-{
-	return (mTargetMatrix);
-}
-
 QVector3D QRobot::getWristPosition() const
 {
 	QVector3D positionVec(
@@ -318,18 +281,14 @@ QVector3D QRobot::getWristPosition() const
 	return positionVec;
 }
 
+QVector3D QRobot::getTooltipPosition() const
+{
+	const double tooltipOffset = mFlangeOffset + mToolOffset;
+	return mLinkMatrices[5] * QVector3D(0.0, 0.0, tooltipOffset);
+}
+
 QQuaternion QRobot::getWristOrientation() const
 {
 	QMatrix3x3 rotMat=mLinkMatrices[5].toGenericMatrix<3,3>();
 	return QQuaternion::fromRotationMatrix(rotMat);
-}
-
-const QVector3D &QRobot::getTargetPosition() const
-{
-	return mTargetPosition;
-}
-
-const QQuaternion &QRobot::getTargetOrientation() const
-{
-	return mTargetOrientation;
 }

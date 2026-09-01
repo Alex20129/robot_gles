@@ -13,15 +13,11 @@ class QRobot : public QObject
 	QVector <double> mJointLimitMax; // deg
 	QVector <double> mLinkLengths; // mm
 	QVector <QMatrix4x4> mLinkMatrices;
-	QMatrix4x4 mTargetMatrix;
 	QVector3D mStartPosition;
-	QVector3D mTargetPosition;
 	QQuaternion mStartOrientation;
-	QQuaternion mTargetOrientation;
 	double mFlangeOffset=80.0;
 	double mToolOffset=0.0;
 	void recalculateLinkMatrices(uint32_t from);
-	void recalculateTargetMatrix();
 
 public:
 	static constexpr double ikInitialStep=1.0; // deg
@@ -37,11 +33,9 @@ public:
 	const QRobot::Pose &getPose() const;
 	QPair<qreal, qreal> getJointLimits(uint32_t joint_index) const;
 	const QMatrix4x4 &getLinkMatrix(uint32_t link_index) const;
-	const QMatrix4x4 &getTargetMatrix() const;
 	QVector3D getWristPosition() const;
+	QVector3D getTooltipPosition() const;
 	QQuaternion getWristOrientation() const;
-	const QVector3D &getTargetPosition() const;
-	const QQuaternion &getTargetOrientation() const;
 	void setJointLimits(uint32_t joint_index, double min_deg, double max_deg);
 	void setLinkLength(uint32_t link_index, double mm);
 	void setFlangeOffset(double mm);
@@ -55,12 +49,9 @@ private:
 public slots:
 	void setJointAngle(uint32_t joint_index, double deg);
 	void setPose(const QRobot::Pose &pose);
-	void setTargetPosition(float x, float y, float z);
-	void setTargetOrientation(float pitch, float yaw, float roll);
 
 signals:
 	void configurationChanged();
-	void targetPositionChanged();
 };
 
 #endif // ROBOT_HPP

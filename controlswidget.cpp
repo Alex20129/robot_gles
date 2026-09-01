@@ -31,8 +31,8 @@ void ControlsWidget::attachRobot(QRobot *robot)
 	}
 	mRobot=robot;
 	QObject::connect(this, &ControlsWidget::jointControlValueChanged, mRobot, &QRobot::setJointAngle);
-	QObject::connect(this, &ControlsWidget::needToSetTargetPosition, mRobot, &QRobot::setTargetPosition);
-	QObject::connect(this, &ControlsWidget::needToSetTargetOrientation, mRobot, &QRobot::setTargetOrientation);
+	// QObject::connect(this, &ControlsWidget::needToSetTargetPosition, mRobot, &QRobot::setTargetPosition);
+	// QObject::connect(this, &ControlsWidget::needToSetTargetOrientation, mRobot, &QRobot::setTargetOrientation);
 	QObject::connect(mRobot, &QRobot::configurationChanged, this, &ControlsWidget::onRobotConfigurationChanged);
 	ui->horizontalScrollBar_J0->setMinimum(mRobot->getJointLimits(0).first*controlsMultiplicator);
 	ui->horizontalScrollBar_J0->setMaximum(mRobot->getJointLimits(0).second*controlsMultiplicator);

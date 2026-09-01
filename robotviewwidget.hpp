@@ -24,6 +24,7 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 	QRobot *mRobot=nullptr;
 	QTrajectoryPlanner *mTrajectoryPlanner=nullptr;
 	QMatrix4x4 projectionMatrix;
+	QMatrix4x4 viewMatrix;
 	QVector2D mousePressPosition;
 	QVector3D rotationAxis;
 	qreal mZoom=-400.0;
@@ -32,10 +33,10 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 	float mCameraPitch=0;
 	float mCameraYaw=0;
 	Ui::RobotViewWidget *ui;
+	void updateViewMatrix();
 
 private slots:
 	void onRobotConfigurationChanged();
-	void onRobotTargetPositionChanged();
 	void onTrajectoryPlannerTrajectoryChanged();
 
 protected:

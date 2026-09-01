@@ -23,6 +23,7 @@ class QTrajectoryPlanner : public QObject
 	QBasicTimer mAnimationTimer;
 	QVector<TrajectorySegment> mSegments;
 	QVector<QRobot::Pose> mPoses;
+	QVector<QVector3D> mTTPath;
 	QRobot *mRobot=nullptr;
 	double mStepSize=0.25; // mm
 	int mAnimationProgress=0;

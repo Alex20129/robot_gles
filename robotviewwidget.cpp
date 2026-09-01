@@ -31,8 +31,6 @@ void RobotViewWidget::attachRobot(QRobot *robot)
 		return;
 	}
 	QObject::connect(mRobot, &QRobot::configurationChanged, this, &RobotViewWidget::onRobotConfigurationChanged);
-	QObject::connect(mRobot, &QRobot::targetPositionChanged, this, &RobotViewWidget::onRobotTargetPositionChanged);
-	onRobotConfigurationChanged();
 }
 
 void RobotViewWidget::attachTrajectoryPlanner(QTrajectoryPlanner *trajectory_planner)
@@ -47,7 +45,6 @@ void RobotViewWidget::attachTrajectoryPlanner(QTrajectoryPlanner *trajectory_pla
 		return;
 	}
 	QObject::connect(mTrajectoryPlanner, &QTrajectoryPlanner::trajectoryChanged, this, &RobotViewWidget::onTrajectoryPlannerTrajectoryChanged);
-	onTrajectoryPlannerTrajectoryChanged();
 }
 
 void RobotViewWidget::onRobotConfigurationChanged()
@@ -55,24 +52,27 @@ void RobotViewWidget::onRobotConfigurationChanged()
 	update();
 }
 
-void RobotViewWidget::onRobotTargetPositionChanged()
-{
-	update();
-}
-
 void RobotViewWidget::onTrajectoryPlannerTrajectoryChanged()
 {
 	const QVector<TrajectorySegment> &trajectorySegments=mTrajectoryPlanner->getSegments();
+	mTrajectoryPoints.clear();
 	if(trajectorySegments.size()<2)
 	{
 		return;
 	}
-	mTrajectoryPoints.clear();
 	mTrajectoryPoints.append(trajectorySegments.first().positionA);
 	for(const TrajectorySegment &segment : trajectorySegments)
 	{
 		mTrajectoryPoints.append(segment.positionB);
 	}
+	mPathGeometry->setTrajectoryPoints(mTrajectoryPoints);
+}
+
+void RobotViewWidget::updateViewMatrix()
+{
+	viewMatrix.setToIdentity();
+	viewMatrix.translate(0, 0, mZoom);
+	viewMatrix.rotate(mCameraRotationQ);
 }
 
 void RobotViewWidget::mousePressEvent(QMouseEvent *event)
@@ -102,6 +102,7 @@ void RobotViewWidget::mouseMoveEvent(QMouseEvent *event)
 	mCameraRotationQ = QQuaternion::fromAxisAndAngle(1, 0, 0, -90.0);
 	mCameraRotationQ = yawQ * mCameraRotationQ;
 	mCameraRotationQ = pitchQ * mCameraRotationQ;
+	updateViewMatrix();
 	update();
 }
 
@@ -123,6 +124,7 @@ void RobotViewWidget::wheelEvent(QWheelEvent *event)
 	{
 		mZoom-=zShiftCorrection;
 	}
+	updateViewMatrix();
 	update();
 }
 
@@ -213,9 +215,6 @@ void RobotViewWidget::paintGL()
 	{
 		return;
 	}
-	QMatrix4x4 viewMatrix;
-	viewMatrix.translate(0, 0, mZoom);
-	viewMatrix.rotate(mCameraRotationQ);
 	if (!mRobotShaderProgram.bind())
 	{
 		return;
@@ -227,15 +226,14 @@ void RobotViewWidget::paintGL()
 		mRobotShaderProgram.setUniformValue("normal_matrix", linkMatrix.normalMatrix());
 		mRobotGeometry.at(i)->drawTriangles(&mRobotShaderProgram);
 	}
-	QMatrix4x4 targetMatrix = viewMatrix * mRobot->getTargetMatrix();
-	mRobotShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * targetMatrix);
-	mRobotShaderProgram.setUniformValue("normal_matrix", targetMatrix.normalMatrix());
-	mTargetGeometry->drawTriangles(&mRobotShaderProgram);
+	// QMatrix4x4 targetMatrix = viewMatrix * mRobot->getTargetMatrix();
+	// mRobotShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * targetMatrix);
+	// mRobotShaderProgram.setUniformValue("normal_matrix", targetMatrix.normalMatrix());
+	// mTargetGeometry->drawTriangles(&mRobotShaderProgram);
 	if (!mLineShaderProgram.bind())
 	{
 		return;
 	}
 	mLineShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * viewMatrix);
-	mPathGeometry->setTrajectoryPoints(mTrajectoryPoints);
 	mPathGeometry->drawLineStrip(&mLineShaderProgram);
 }

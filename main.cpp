@@ -19,14 +19,12 @@ int main(int argc, char *argv[])
 
 	QRobot *robot=new QRobot;
 	QTrajectoryPlanner *trajectoryPlanner=new QTrajectoryPlanner;
+	trajectoryPlanner->attachRobot(robot);
+
 	RobotViewWidget *rvWidget=new RobotViewWidget;
 
 	rvWidget->attachRobot(robot);
 	rvWidget->attachTrajectoryPlanner(trajectoryPlanner);
-
-	trajectoryPlanner->attachRobot(robot);
-	trajectoryPlanner->loadFromJsonFile("demo-path.json");
-	trajectoryPlanner->rebuildPoses();
 
 	ControlsWidget *cWidget=new ControlsWidget;
 	cWidget->attachRobot(robot);
@@ -37,6 +35,9 @@ int main(int argc, char *argv[])
 	rvWidget->resize(1024, 768);
 	rvWidget->show();
 	cWidget->show();
+
+	trajectoryPlanner->loadFromJsonFile("demo-path.json");
+	trajectoryPlanner->rebuildPoses();
 
 	return app.exec();
 }

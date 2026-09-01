@@ -43,6 +43,7 @@ void QTrajectoryPlanner::attachRobot(QRobot *robot)
 void QTrajectoryPlanner::rebuildPoses()
 {
 	mPoses.clear();
+	mTTPath.clear();
 	if(nullptr==mRobot)
 	{
 		return;
@@ -70,6 +71,7 @@ void QTrajectoryPlanner::rebuildPoses()
 					// TODO: handle unsolved orientation cases
 					double OrientationError=mRobot->solveIkForOrientation(QQuaternion::slerp(quOrientationA, quOrientationB, t));
 					mPoses.push_back(mRobot->getPose());
+					mTTPath.push_back(mRobot->getTooltipPosition());
 				}
 				break;
 			}
@@ -108,12 +110,14 @@ void QTrajectoryPlanner::rebuildPoses()
 		mRobot->solveIkForPosition(lastSegment.positionB);
 		mRobot->solveIkForOrientation(QQuaternion::fromEulerAngles(lastSegment.orientationB));
 		mPoses.push_back(mRobot->getPose());
+		mTTPath.push_back(mRobot->getTooltipPosition());
 	}
 }
 
 void QTrajectoryPlanner::clear()
 {
 	mPoses.clear();
+	mTTPath.clear();
 	if(mSegments.size())
 	{
 		mSegments.clear();
