@@ -1,7 +1,6 @@
 # Robot Qt + OpenGL
 
 An interactive 6-DOF robot simulator based on Qt, featuring real-time OpenGL visualization.
-The application provides manual joint control and animated movement to a target pose.
 
 ![alt tag](https://github.com/Alex20129/robot_gles/blob/main/robot_gles.png)
 
@@ -9,8 +8,8 @@ The application provides manual joint control and animated movement to a target 
 
 - 6-DOF serial manipulator model with configurable joint limits and link lengths
 - Real-time 3D visualization using Qt OpenGL widgets
-- Binary STL model loading for individual links and target marker
-- Interactive camera (orbit + zoom)
+- Binary STL model loading for individual links
+- Interactive camera
 - Manual joint angle control
 - Inverse kinematics solver
 - Animated movement along a given path
