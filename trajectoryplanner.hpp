@@ -28,7 +28,7 @@ class QTrajectoryPlanner : public QObject
 	QRobot *mRobot=nullptr;
 	double mStepSize=0.25; // mm
 	int mAnimationProgress=0;
-	int mAnimationFrameInterval=50;
+	int mAnimationFrameInterval=25;
 	void timerEvent(QTimerEvent *event) override;
 
 public:
