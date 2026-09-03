@@ -10,9 +10,9 @@
 
 struct TrajectorySegment
 {
-	enum SegmentType { Line, Arc, Spline };
+	enum SegmentType { Line, Arc, Spline, Free };
 	SegmentType type=SegmentType::Line;
-	qreal speed=0.0;
+	qreal speed=1.0; // mmps
 	QVector3D positionA, positionB, positionC;
 	QVector3D orientationA, orientationB, orientationC;
 };

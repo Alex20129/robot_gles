@@ -123,37 +123,37 @@ static double vectorDiffSq(const QVector3D &va, const QVector3D &vb)
 	return (diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-double QRobot::solveIkForPosition(const QVector3D &position)
+double QRobot::solveIkForPosition(const QVector3D &position, uint32_t cycles_limit)
 {
-	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	double DiffSq=vectorDiffSq(position, getWristPosition());
-	bool Improved=true;
-	while (Improved)
+	double jointAngleCorrection[3]={ikInitialStep, ikInitialStep, ikInitialStep};
+	double diffSq=vectorDiffSq(position, getWristPosition());
+	bool improved=true;
+	while (improved && cycles_limit--)
 	{
-		Improved=false;
+		improved=false;
 		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
 			for (int j=0; j < 3; ++j)
 			{
 				const double oldAngle=mPose.jointAngles[j];
-				mPose.jointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
+				mPose.jointAngles[j]=qBound(mJointLimitMin[j], oldAngle + jointAngleCorrection[j], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
 				const double newDiff=vectorDiffSq(position, getWristPosition());
-				if (DiffSq > newDiff)
+				if (diffSq > newDiff)
 				{
-					DiffSq=newDiff;
-					Improved=true;
+					diffSq=newDiff;
+					improved=true;
 				}
 				else
 				{
 					mPose.jointAngles[j]=oldAngle;
 					recalculateLinkMatrices(j);
-					ikStep[j] *= ikSlowdownCoefficient;
+					jointAngleCorrection[j] *= ikSlowdownCoefficient;
 				}
 			}
 		}
 	}
-	return (DiffSq);
+	return (diffSq);
 }
 
 static double quaternionDiffSq(const QQuaternion &qa, const QQuaternion &qb)
@@ -174,38 +174,38 @@ static double quaternionDiffSq(const QQuaternion &qa, const QQuaternion &qb)
 	return (diffS*diffS + diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-double QRobot::solveIkForOrientation(const QQuaternion &orientation)
+double QRobot::solveIkForOrientation(const QQuaternion &orientation, uint32_t cycles_limit)
 {
-	QQuaternion NormalizedOrientation=orientation.normalized();
-	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	double DiffSq=quaternionDiffSq(NormalizedOrientation, getToolOrientation());
-	bool Improved=true;
-	while (Improved)
+	QQuaternion normalizedOrientation=orientation.normalized();
+	double jointAngleCorrection[3]={ikInitialStep, ikInitialStep, ikInitialStep};
+	double diffSq=quaternionDiffSq(normalizedOrientation, getToolOrientation());
+	bool improved=true;
+	while (improved && cycles_limit--)
 	{
-		Improved=false;
+		improved=false;
 		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
 		{
 			for (int j=3; j < 6; ++j)
 			{
 				const double oldAngle=mPose.jointAngles[j];
-				mPose.jointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
+				mPose.jointAngles[j]=qBound(mJointLimitMin[j], oldAngle + jointAngleCorrection[j-3], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
-				const double newDiff=quaternionDiffSq(NormalizedOrientation, getToolOrientation());
-				if (DiffSq > newDiff)
+				const double newDiff=quaternionDiffSq(normalizedOrientation, getToolOrientation());
+				if (diffSq > newDiff)
 				{
-					DiffSq=newDiff;
-					Improved=true;
+					diffSq=newDiff;
+					improved=true;
 				}
 				else
 				{
 					mPose.jointAngles[j]=oldAngle;
 					recalculateLinkMatrices(j);
-					ikStep[j] *= ikSlowdownCoefficient;
+					jointAngleCorrection[j-3] *= ikSlowdownCoefficient;
 				}
 			}
 		}
 	}
-	return (DiffSq);
+	return (diffSq);
 }
 
 void QRobot::setJointAngle(uint32_t joint_index, double deg)
