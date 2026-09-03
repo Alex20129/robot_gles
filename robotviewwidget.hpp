@@ -20,7 +20,7 @@ class RobotViewWidget : public QOpenGLWidget, protected QOpenGLFunctions
 	QOpenGLShaderProgram mLineShaderProgram;
 	QVector <GeometryEngine *> mRobotGeometry;
 	QVector<QVector3D> mTrajectoryPoints;
-	GeometryEngine *mTargetGeometry;
+	GeometryEngine *mToolGeometry;
 	GeometryEngine *mTooltipPathGeometry, *mWristPathGeometry;
 	QRobot *mRobot=nullptr;
 	QTrajectoryPlanner *mTrajectoryPlanner=nullptr;

@@ -79,6 +79,8 @@ void QRobot::recalculateLinkMatrices(uint32_t from)
 			mLinkMatrices[5].rotate(mPose.jointAngles[5], 0, 0, 1);
 		}
 	}
+	mToolMatrix=mLinkMatrices[5];
+	mToolMatrix.translate(0, 0, mFlangeOffset);
 }
 
 void QRobot::setJointLimits(uint32_t joint_index, double min_deg, double max_deg)
@@ -176,7 +178,7 @@ double QRobot::solveIkForOrientation(const QQuaternion &orientation)
 {
 	QQuaternion NormalizedOrientation=orientation.normalized();
 	QVector<double> ikStep(numOfJoints, ikInitialStep);
-	double DiffSq=quaternionDiffSq(NormalizedOrientation, getWristOrientation());
+	double DiffSq=quaternionDiffSq(NormalizedOrientation, getToolOrientation());
 	bool Improved=true;
 	while (Improved)
 	{
@@ -188,7 +190,7 @@ double QRobot::solveIkForOrientation(const QQuaternion &orientation)
 				const double oldAngle=mPose.jointAngles[j];
 				mPose.jointAngles[j]=qBound(mJointLimitMin[j], oldAngle + ikStep[j], mJointLimitMax[j]);
 				recalculateLinkMatrices(j);
-				const double newDiff=quaternionDiffSq(NormalizedOrientation, getWristOrientation());
+				const double newDiff=quaternionDiffSq(NormalizedOrientation, getToolOrientation());
 				if (DiffSq > newDiff)
 				{
 					DiffSq=newDiff;
@@ -272,6 +274,11 @@ const QMatrix4x4 &QRobot::getLinkMatrix(uint32_t link_index) const
 	return (mLinkMatrices[link_index]);
 }
 
+const QMatrix4x4 &QRobot::getToolMatrix() const
+{
+	return (mToolMatrix);
+}
+
 QVector3D QRobot::getWristPosition() const
 {
 	QVector3D positionVec(
@@ -281,13 +288,17 @@ QVector3D QRobot::getWristPosition() const
 	return positionVec;
 }
 
-QVector3D QRobot::getTooltipPosition() const
+QVector3D QRobot::getFlangePosition() const
 {
-	const double tooltipOffset = mFlangeOffset + mToolOffset;
-	return mLinkMatrices[5] * QVector3D(0.0, 0.0, tooltipOffset);
+	return (mLinkMatrices[5] * QVector3D(0.0, 0.0, mFlangeOffset));
 }
 
-QQuaternion QRobot::getWristOrientation() const
+QVector3D QRobot::getTooltipPosition() const
+{
+	return (mLinkMatrices[5] * QVector3D(0.0, 0.0, mFlangeOffset + mToolOffset));
+}
+
+QQuaternion QRobot::getToolOrientation() const
 {
 	QMatrix3x3 rotMat=mLinkMatrices[5].toGenericMatrix<3,3>();
 	return QQuaternion::fromRotationMatrix(rotMat);

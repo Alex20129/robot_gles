@@ -12,8 +12,9 @@ class GeometryEngine : protected QOpenGLFunctions
 	QOpenGLBuffer mTrajectoryVBuf;
 	QVector3D minCoord, maxCoord;
 	QVector3D sizeVec, centerVec;
-	QVector3D mModelColor, mLightColor;
-	QVector3D mTrajectoryColor;
+	QVector3D mLightColor;
+	QVector3D mModelColor;
+	QVector3D mLineColor;
 	int vertexCount=0;
 	int indexCount=0;
 	int mTrajectoryVertexCount=0;
@@ -24,7 +25,7 @@ public:
 	virtual ~GeometryEngine();
 	void setModelColor(const QVector3D &model_color);
 	void setLightColor(const QVector3D &light_color);
-	void setTrajectoryColor(const QVector3D &trajectory_color);
+	void setLineColor(const QVector3D &trajectory_color);
 	void setTrajectoryPoints(const QVector<QVector3D> &points);
 	void clearTrajectory();
 	void drawTriangles(QOpenGLShaderProgram *program);

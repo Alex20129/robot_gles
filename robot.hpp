@@ -13,10 +13,11 @@ class QRobot : public QObject
 	QVector <double> mJointLimitMax; // deg
 	QVector <double> mLinkLengths; // mm
 	QVector <QMatrix4x4> mLinkMatrices;
+	QMatrix4x4 mToolMatrix;
 	QVector3D mStartPosition;
 	QQuaternion mStartOrientation;
 	double mFlangeOffset=80.0;
-	double mToolOffset=0.0;
+	double mToolOffset=110.0;
 	void recalculateLinkMatrices(uint32_t from);
 
 public:
@@ -33,9 +34,11 @@ public:
 	const QRobot::Pose &getPose() const;
 	QPair<qreal, qreal> getJointLimits(uint32_t joint_index) const;
 	const QMatrix4x4 &getLinkMatrix(uint32_t link_index) const;
+	const QMatrix4x4 &getToolMatrix() const;
 	QVector3D getWristPosition() const;
+	QVector3D getFlangePosition() const;
 	QVector3D getTooltipPosition() const;
-	QQuaternion getWristOrientation() const;
+	QQuaternion getToolOrientation() const;
 	void setJointLimits(uint32_t joint_index, double min_deg, double max_deg);
 	void setLinkLength(uint32_t link_index, double mm);
 	void setFlangeOffset(double mm);

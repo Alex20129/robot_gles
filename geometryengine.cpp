@@ -20,7 +20,7 @@ GeometryEngine::GeometryEngine()
 
 	mModelColor=QVector3D(1.0f, 1.0f, 1.0f);
 	mLightColor=QVector3D(1.0f, 1.0f, 1.0f);
-	mTrajectoryColor=QVector3D(0.2f, 1.0f, 0.2f);
+	mLineColor=QVector3D(0.2f, 1.0f, 0.2f);
 
 	initializeOpenGLFunctions();
 	arrayBuf.create();
@@ -128,9 +128,9 @@ void GeometryEngine::setLightColor(const QVector3D &light_color)
 	mLightColor=light_color;
 }
 
-void GeometryEngine::setTrajectoryColor(const QVector3D &trajectory_color)
+void GeometryEngine::setLineColor(const QVector3D &line_color)
 {
-	mTrajectoryColor=trajectory_color;
+	mLineColor=line_color;
 }
 
 void GeometryEngine::setTrajectoryPoints(const QVector<QVector3D> &points)
@@ -172,7 +172,7 @@ void GeometryEngine::drawTriangles(QOpenGLShaderProgram *program)
 void GeometryEngine::drawLineStrip(QOpenGLShaderProgram *program)
 {
 	mTrajectoryVBuf.bind();
-	program->setUniformValue("u_color", mTrajectoryColor);
+	program->setUniformValue("u_color", mLineColor);
 	int positionLocation=program->attributeLocation("a_position");
 	program->enableAttributeArray(positionLocation);
 	program->setAttributeBuffer(positionLocation, GL_FLOAT, 0, 3, sizeof(QVector3D));

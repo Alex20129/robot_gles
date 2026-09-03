@@ -58,7 +58,7 @@ void ControlsWidget::onRobotConfigurationChanged()
 	ui->lineEdit_actual_z->setText(QString::number(wristPosition.z(), 'f', 3));
 
 	float actualPitch, actualYaw, actualRoll;
-	mRobot->getWristOrientation().getEulerAngles(&actualPitch, &actualYaw, &actualRoll);
+	mRobot->getToolOrientation().getEulerAngles(&actualPitch, &actualYaw, &actualRoll);
 	ui->lineEdit_actual_pitch->setText(QString::number(actualPitch, 'f', 3));
 	ui->lineEdit_actual_yaw->setText(QString::number(actualYaw, 'f', 3));
 	ui->lineEdit_actual_roll->setText(QString::number(actualRoll, 'f', 3));

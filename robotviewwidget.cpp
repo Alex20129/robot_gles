@@ -14,7 +14,7 @@ RobotViewWidget::~RobotViewWidget()
 	makeCurrent();
 	delete mWristPathGeometry;
 	delete mTooltipPathGeometry;
-	delete mTargetGeometry;
+	delete mToolGeometry;
 	qDeleteAll(mRobotGeometry);
 	doneCurrent();
 	delete ui;
@@ -167,14 +167,6 @@ void RobotViewWidget::wheelEvent(QWheelEvent *event)
 
 void RobotViewWidget::initializeGL()
 {
-	for (uint32_t modelID=0; modelID<QRobot::numOfJoints; modelID++)
-	{
-		GeometryEngine *newModelGeometry=new GeometryEngine;
-		mRobotGeometry.append(newModelGeometry);
-	}
-	mTargetGeometry=new GeometryEngine;
-	mWristPathGeometry=new GeometryEngine;
-	mTooltipPathGeometry=new GeometryEngine;
 	static const QStringList robotSTLFiles=
 	{
 		QString("robot_00.stl"),
@@ -193,15 +185,20 @@ void RobotViewWidget::initializeGL()
 		QVector3D(0.75f, 0.95f, 0.95f),
 		QVector3D(0.75f, 0.95f, 0.95f),
 	};
-	for (int modelID=0; modelID<robotSTLFiles.size(); modelID++)
+	mToolGeometry=new GeometryEngine;
+	mWristPathGeometry=new GeometryEngine;
+	mTooltipPathGeometry=new GeometryEngine;
+	for (uint32_t modelID=0; modelID<QRobot::numOfJoints; modelID++)
 	{
-		mRobotGeometry.at(modelID)->loadModelFromStlFile(robotSTLFiles.at(modelID));
-		mRobotGeometry.at(modelID)->setModelColor(mColors.at(modelID));
+		GeometryEngine *newModelGeometry=new GeometryEngine;
+		mRobotGeometry.append(newModelGeometry);
+		newModelGeometry->setModelColor(mColors.at(modelID));
+		newModelGeometry->loadModelFromStlFile(robotSTLFiles.at(modelID));
 	}
-	mTargetGeometry->setModelColor({0.97f, 0.21f, 0.21f});
-	mTargetGeometry->loadModelFromStlFile("target.stl");
-	mWristPathGeometry->setTrajectoryColor({0.2f, 1.0f, 0.2f});
-	mTooltipPathGeometry->setTrajectoryColor({0.2f, 0.2f, 1.0f});
+	mToolGeometry->setModelColor({0.75f, 0.75f, 0.95f});
+	mToolGeometry->loadModelFromStlFile("tool_01.stl");
+	mWristPathGeometry->setLineColor({0.2f, 1.0f, 0.2f});
+	mTooltipPathGeometry->setLineColor({0.2f, 0.2f, 1.0f});
 	initializeOpenGLFunctions();
 	initShaders();
 	glEnable(GL_DEPTH_TEST);
@@ -267,10 +264,10 @@ void RobotViewWidget::paintGL()
 		mRobotShaderProgram.setUniformValue("normal_matrix", linkMatrix.normalMatrix());
 		mRobotGeometry.at(i)->drawTriangles(&mRobotShaderProgram);
 	}
-	// QMatrix4x4 targetMatrix = viewMatrix * mRobot->getTargetMatrix();
-	// mRobotShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * targetMatrix);
-	// mRobotShaderProgram.setUniformValue("normal_matrix", targetMatrix.normalMatrix());
-	// mTargetGeometry->drawTriangles(&mRobotShaderProgram);
+	QMatrix4x4 toolMatrix = viewMatrix * mRobot->getToolMatrix();
+	mRobotShaderProgram.setUniformValue("mvp_matrix", projectionMatrix * toolMatrix);
+	mRobotShaderProgram.setUniformValue("normal_matrix", toolMatrix.normalMatrix());
+	mToolGeometry->drawTriangles(&mRobotShaderProgram);
 	if (!mLineShaderProgram.bind())
 	{
 		return;
