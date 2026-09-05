@@ -92,8 +92,7 @@ void QTrajectoryPlanner::rebuildPoses()
 				float caLengthSquared=ca.lengthSquared();
 				float cbLengthSquared=cb.lengthSquared();
 
-				QVector3D cToCenter=QVector3D::crossProduct(
-					caLengthSquared * cb - cbLengthSquared * ca, normal) / (2.0f * normalLengthSquared);
+				QVector3D cToCenter=QVector3D::crossProduct(caLengthSquared * cb - cbLengthSquared * ca, normal) / (2.0f * normalLengthSquared);
 				QVector3D center=c + cToCenter;
 				float radius=(c - center).length();
 
@@ -102,11 +101,6 @@ void QTrajectoryPlanner::rebuildPoses()
 			case TrajectorySegment::SegmentType::Spline:
 			{
 				// TODO: Spline
-				break;
-			}
-			case TrajectorySegment::SegmentType::Free:
-			{
-				// TODO: Free
 				break;
 			}
 		}
@@ -155,11 +149,7 @@ bool QTrajectoryPlanner::loadFromJsonFile(const QString &file)
 	{
 		QJsonObject segmentJsonObject=segmentJsonValue.toObject();
 		TrajectorySegment segment;
-		if(segmentJsonObject.value("type").toString().toLower()==QStringLiteral("free"))
-		{
-			segment.type=TrajectorySegment::SegmentType::Free;
-		}
-		else if(segmentJsonObject.value("type").toString().toLower()==QStringLiteral("spline"))
+		if(segmentJsonObject.value("type").toString().toLower()==QStringLiteral("spline"))
 		{
 			segment.type=TrajectorySegment::SegmentType::Spline;
 		}

@@ -43,8 +43,8 @@ public:
 	void setLinkLength(uint32_t link_index, double mm);
 	void setFlangeOffset(double mm);
 	void setToolOffset(double mm);
-	double solveIkForPosition(const QVector3D &position, uint32_t cycles_limit=UINT32_MAX);
-	double solveIkForOrientation(const QQuaternion &orientation, uint32_t cycles_limit=UINT32_MAX);
+	double solveIkForPosition(const QVector3D &position);
+	double solveIkForOrientation(const QQuaternion &orientation);
 
 private:
 	QRobot::Pose mPose;

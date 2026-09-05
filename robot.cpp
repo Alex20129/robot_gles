@@ -123,12 +123,12 @@ static double vectorDiffSq(const QVector3D &va, const QVector3D &vb)
 	return (diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-double QRobot::solveIkForPosition(const QVector3D &position, uint32_t cycles_limit)
+double QRobot::solveIkForPosition(const QVector3D &position)
 {
 	double jointAngleCorrection[3]={ikInitialStep, ikInitialStep, ikInitialStep};
 	double diffSq=vectorDiffSq(position, getWristPosition());
 	bool improved=true;
-	while (improved && cycles_limit--)
+	while (improved)
 	{
 		improved=false;
 		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
@@ -174,13 +174,13 @@ static double quaternionDiffSq(const QQuaternion &qa, const QQuaternion &qb)
 	return (diffS*diffS + diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-double QRobot::solveIkForOrientation(const QQuaternion &orientation, uint32_t cycles_limit)
+double QRobot::solveIkForOrientation(const QQuaternion &orientation)
 {
 	QQuaternion normalizedOrientation=orientation.normalized();
 	double jointAngleCorrection[3]={ikInitialStep, ikInitialStep, ikInitialStep};
 	double diffSq=quaternionDiffSq(normalizedOrientation, getToolOrientation());
 	bool improved=true;
-	while (improved && cycles_limit--)
+	while (improved)
 	{
 		improved=false;
 		for (uint32_t ikIteration=0; ikIteration<ikIterationsPerCycle; ikIteration++)
